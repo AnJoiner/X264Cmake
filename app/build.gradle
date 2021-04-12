@@ -58,4 +58,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     implementation(name:'breakpad-build-0.0.1',ext:'aar')
+
+    implementation 'com.googlecode.mp4parser:isoparser:1.1.22'
 }
