@@ -44,6 +44,10 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    viewBinding {
+        enabled = true
+    }
 }
 
 dependencies {
@@ -60,4 +64,8 @@ dependencies {
     implementation(name:'breakpad-build-0.0.1',ext:'aar')
 
     implementation 'com.googlecode.mp4parser:isoparser:1.1.22'
+    // 日志系统
+    implementation 'com.orhanobut:logger:2.2.0'
+    // 屏幕适配
+    implementation 'me.jessyan:autosize:1.2.1'
 }

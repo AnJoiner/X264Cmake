@@ -32,7 +32,7 @@ SET_TARGET_PROPERTIES(
 add_library(
         h264-encode
         SHARED
-        src/main/cpp/h264-encode.cpp
+        src/main/cpp/h264-encode.cpp src/main/cpp/queue.cpp
 )
 
 include_directories(src/main/cpp)

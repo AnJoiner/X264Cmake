@@ -1,4 +1,4 @@
-package com.coder.x264cmake;
+package com.coder.x264cmake.annotation;
 
 import androidx.annotation.IntDef;
 
@@ -8,11 +8,13 @@ import androidx.annotation.IntDef;
  */
 @IntDef({
         YUVFormat.YUV_420,
+        YUVFormat.YUV_NV21,
         YUVFormat.YUV_422,
         YUVFormat.YUV_444
 })
 public @interface YUVFormat {
-    int YUV_444 = 2;
-    int YUV_422 = 1;
+    int YUV_444 = 3;
+    int YUV_422 = 2;
+    int YUV_NV21 = 1;
     int YUV_420 = 0;
 }

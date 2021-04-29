@@ -12,6 +12,9 @@ import java.nio.channels.FileChannel;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.coder.x264cmake.annotation.YUVFormat;
+import com.coder.x264cmake.jni.X264Encode;
+import com.coder.x264cmake.utils.FileUtils;
 import com.coremedia.iso.boxes.Container;
 import com.googlecode.mp4parser.FileDataSourceImpl;
 import com.googlecode.mp4parser.authoring.Movie;

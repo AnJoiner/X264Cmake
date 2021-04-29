@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:background="@color/color_black_50"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/camera_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+
+    <RelativeLayout
+        android:layout_marginTop="@dimen/dp_29"
+        android:paddingStart="@dimen/dp_14"
+        android:paddingEnd="@dimen/dp_14"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/back_btn"
+            android:layout_width="@dimen/dp_29"
+            android:src="@drawable/ic_camera_close"
+            android:layout_height="@dimen/dp_29"/>
+
+        <ImageView
+            android:id="@+id/switch_btn"
+            android:layout_width="@dimen/dp_29"
+            android:src="@drawable/ic_camera_switch"
+            android:layout_alignParentEnd="true"
+            android:layout_height="@dimen/dp_29"/>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/camera_btn"
+        android:layout_width="@dimen/dp_67"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="@dimen/dp_38"
+        android:gravity="center"
+        android:background="@drawable/shape_camera_shoot_btn_border"
+        android:layout_height="@dimen/dp_67">
+
+        <ImageView
+            android:id="@+id/camera_image"
+            android:layout_width="@dimen/dp_48"
+            android:background="@drawable/selector_camera_btn"
+            android:layout_height="@dimen/dp_48"/>
+
+    </LinearLayout>
+
+</FrameLayout>

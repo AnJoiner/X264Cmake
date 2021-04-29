@@ -1,4 +1,4 @@
-package com.coder.x264cmake;
+package com.coder.x264cmake.utils;
 
 import android.content.Context;
 import android.util.Log;
