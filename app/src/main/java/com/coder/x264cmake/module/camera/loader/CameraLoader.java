@@ -151,6 +151,7 @@ public class CameraLoader {
         return 0;
     }
 
+
     private void setFlash(Camera.Parameters parameters) {
         List<String> flashModes = parameters.getSupportedFlashModes();
         //  && cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK
@@ -176,6 +177,7 @@ public class CameraLoader {
         Camera.Size size = getCloselyPreSize(surfaceWidth, surfaceHeight, supportSizes);
         videoWidth = size.width;
         videoHeight = size.height;
+        LogUtils.d("CameraLoader===>>> width:"+videoWidth+", height:"+videoHeight);
         parameters.setPreviewSize(size.width, size.height);
     }
 
@@ -260,7 +262,26 @@ public class CameraLoader {
         parameters.setPictureSize(fitSize.width, fitSize.height);
     }
 
+    private static int[] getCloselyPreviewFps(int expectedFps, List<int[]> fpsRanges) {
+        expectedFps *= 1000;
+        int[] closestRange = fpsRanges.get(0);
+        int measure = Math.abs(closestRange[0] - expectedFps) + Math.abs(closestRange[1] - expectedFps);
+        for (int[] range : fpsRanges) {
+            if (range[0] <= expectedFps && range[1] >= expectedFps) {
+                int curMeasure = Math.abs(range[0] - expectedFps) + Math.abs(range[1] - expectedFps);
+                if (curMeasure < measure) {
+                    closestRange = range;
+                    measure = curMeasure;
+                }
+            }
+        }
+        return closestRange;
+    }
+
+
     public interface OnCameraPreCallback {
         void onCameraPreFrame(byte[] data, int width, int height);
     }
+
+
 }

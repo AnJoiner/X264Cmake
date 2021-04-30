@@ -19,16 +19,19 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.X264Cmake">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+        <!--拍摄-->
+        <activity android:name=".module.camera.ui.CameraActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--拍摄-->
-        <activity android:name=".module.camera.ui.CameraActivity"
-            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>
