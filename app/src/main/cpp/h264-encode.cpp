@@ -277,6 +277,9 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_coder_x264cmake_jni_X264Encode_release(JNIEnv *env, jobject thiz) {
     is_release = 1;
+    if (!is_encoding_h264){
+        flush_release();
+    }
 }
 
 

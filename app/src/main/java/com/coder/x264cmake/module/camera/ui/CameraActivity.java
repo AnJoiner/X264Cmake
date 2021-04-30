@@ -90,7 +90,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 x264Encode.release();
             }else {
                 h264Path = getExternalCacheDir()+ File.separator+System.currentTimeMillis()+".h264";
-                x264Encode.init(1080,960, h264Path, YUVFormat.YUV_NV21);
+                x264Encode.init(720,1080, h264Path, YUVFormat.YUV_NV21);
             }
         }else if (v.getId() == R.id.back_btn){
             finish();
