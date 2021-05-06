@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         h264Path = getExternalCacheDir() + File.separator + "test.h264";
         mp4Path = getExternalCacheDir() + File.separator + "test.mp4";
 
-//        FileUtils.copyFilesAssets(this, "test.yuv", yuvPath);
+        FileUtils.copyFilesAssets(this, "test.yuv", yuvPath);
     }
 
     private void initData() {
@@ -80,11 +80,11 @@ public class MainActivity extends AppCompatActivity {
         mExecuteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String content = "this is byte array";
-                LogUtils.d("content length is "+ content.length());
-                mX264Encode.initQueue(content.getBytes());
-//                mX264Encode.encode(width, height, yuvPath, h264Path, YUVFormat.YUV_420);
-//                h264ToMp4();
+//                String content = "this is byte array";
+//                LogUtils.d("content length is "+ content.length());
+//                mX264Encode.initQueue(content.getBytes());
+                mX264Encode.encode(width, height, yuvPath, h264Path, YUVFormat.YUV_420);
+                h264ToMp4();
             }
         });
     }

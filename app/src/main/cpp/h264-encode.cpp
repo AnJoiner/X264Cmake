@@ -70,7 +70,7 @@ Java_com_coder_x264cmake_jni_X264Encode_init(JNIEnv *env, jobject thiz, jint wid
         LOGE("h264 path cannot be null");
         return -1;
     }
-    x264_file = fopen(x264_file_path, "wb");
+    x264_file = fopen(x264_file_path, "w+");
     if (x264_file == NULL) {
         LOGE("cannot open h264 file");
         return -1;
@@ -114,11 +114,15 @@ Java_com_coder_x264cmake_jni_X264Encode_init(JNIEnv *env, jobject thiz, jint wid
 
     // 初始化编码参数
     x264_param_default(param);
+    x264_param_default_preset(param, x264_preset_names[0], x264_tune_names[7]);
     param->i_width = width;
     param->i_height = height;
     param->i_csp = x264_csp;
     // 配置处理级别
-    x264_param_apply_profile(param, x264_profile_names[5]);
+    x264_param_apply_profile(param, x264_profile_names[2]);
+//    param->i_fps_num = 30;
+//    param->i_fps_den = 1;
+//    param->rc.i_rc_method = X264_RC_CRF;
     // 通过配置的参数打开编码器
     h = x264_encoder_open(param);
 
@@ -196,19 +200,20 @@ int encode_core() {
 
 void flush_release(){
     // 冲刷缓冲区，不执行可能造成数据不完整
-    int i = 0;
-    while (1) {
-        int ret = x264_encoder_encode(h, &nal, &i_nal, NULL, pic_out);
-        if (ret == 0) {
-            break;
-        }
-        LOGD("flush %d frame",i);
-        // 将编码数据循环写入目标文件
-        for (int j = 0; j < i_nal; ++j) {
-            fwrite(nal[j].p_payload, 1, nal[j].i_payload, x264_file);
-        }
-        i++;
-    }
+//    int i = 0;
+//    while (1) {
+//        int ret = x264_encoder_encode(h, &nal, &i_nal, NULL, pic_out);
+//        if (ret == 0) {
+//            break;
+//        }
+//        LOGI("flush %d frame",i);
+//        // 将编码数据循环写入目标文件
+//        for (int j = 0; j < i_nal; ++j) {
+//            fwrite(nal[j].p_payload, 1, nal[j].i_payload, x264_file);
+//        }
+//        i++;
+//    }
+//    LOGI("flush over");
 
     x264_picture_clean(pic_in);
     x264_encoder_close(h);
@@ -218,9 +223,13 @@ void flush_release(){
     free(param);
     // 关闭文件输入
     fclose(x264_file);
+
+    LOGI("release complete");
 }
 
 int execute_encode() {
+    is_encoding_h264 = 1;
+    // 只有当前队列里的数据编码完成才停止
     while (1) {
         LOGI("start encode...");
         int ret = encode_core();
@@ -261,7 +270,7 @@ Java_com_coder_x264cmake_jni_X264Encode_encodeData(JNIEnv *env, jobject thiz, jb
     LOGD("incoming data size %ld", strlen(buffer));
     // 释放资源
     env->ReleaseByteArrayElements(data, bytes, 0);
-
+    // 在用户没有停止编码的情况下，将数据放入队列
     if (!is_release && h264_queue != NULL) {
         push_data(h264_queue, buffer);
         // 只有当停止时才重新开启循环编码
@@ -277,7 +286,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_coder_x264cmake_jni_X264Encode_release(JNIEnv *env, jobject thiz) {
     is_release = 1;
-    if (!is_encoding_h264){
+    if (is_encoding_h264 == 0){
         flush_release();
     }
 }

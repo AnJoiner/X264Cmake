@@ -62,9 +62,11 @@ public class CameraLoader {
         // 自动对焦
         setFocus(parameters);
         setPreviewSize(parameters);
+        setPreviewFps(parameters);
         setPictureSize(parameters);
         // 将预览数据进行回调
         if (onCameraPreCallback != null) {
+//            cameraInstance.setPreviewCallbackWithBuffer((data, camera) -> onCameraPreCallback.onCameraPreFrame(data, videoWidth, videoHeight));
             cameraInstance.setPreviewCallback((data, camera) -> onCameraPreCallback.onCameraPreFrame(data, videoWidth, videoHeight));
         }
         cameraInstance.setParameters(parameters);
@@ -179,6 +181,14 @@ public class CameraLoader {
         videoHeight = size.height;
         LogUtils.d("CameraLoader===>>> width:"+videoWidth+", height:"+videoHeight);
         parameters.setPreviewSize(size.width, size.height);
+    }
+
+    public void setPreviewFps(Camera.Parameters parameters){
+        List<int[]> fpsRange = parameters.getSupportedPreviewFpsRange();
+        for (int[] fps : fpsRange) {
+            LogUtils.d("CameraLoader===>>> fps[0]:"+fps[0]+", fps[1]:"+fps[1]);
+        }
+//        int[] fps = fpsRange.get(0);
     }
 
 

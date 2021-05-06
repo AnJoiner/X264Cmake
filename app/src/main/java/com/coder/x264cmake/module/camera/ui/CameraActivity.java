@@ -2,6 +2,7 @@ package com.coder.x264cmake.module.camera.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,12 +18,14 @@ import com.coder.x264cmake.databinding.ActivityCameraBinding;
 import com.coder.x264cmake.jni.X264Encode;
 import com.coder.x264cmake.module.camera.loader.CameraLoader;
 import com.coder.x264cmake.utils.LogUtils;
+import com.coder.x264cmake.utils.YUV420Utils;
 import com.coder.x264cmake.widgets.CameraPreview;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
-public class CameraActivity extends AppCompatActivity implements View.OnClickListener{
+public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ActivityCameraBinding mViewBinding;
     // 相机
@@ -50,13 +53,13 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         init();
     }
 
-    private void init(){
+    private void init() {
         initData();
         initCamera();
         initListener();
     }
 
-    private void initData(){
+    private void initData() {
         x264Encode = new X264Encode();
     }
 
@@ -65,9 +68,19 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mCameraLoader.setOnCameraPreCallback(new CameraLoader.OnCameraPreCallback() {
             @Override
             public void onCameraPreFrame(byte[] data, int width, int height) {
-                if (isRecording){
-                    LogUtils.d("h264-encode data size ===>>> "+ data.length);
-                    x264Encode.encodeData(data);
+                if (isRecording) {
+                    LogUtils.d("h264-encode data size ===>>> " + data.length);
+                    int rotate = mCameraLoader.getRotation();
+                    if (mCameraLoader.cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK){
+                        if (rotate == 90){
+                            x264Encode.encodeData(YUV420Utils.rotate90(data, width, height));
+                        }
+                    }else {
+                        if (rotate == 90){
+                            x264Encode.encodeData(YUV420Utils.rotate270(data, width, height));
+                        }
+                    }
+
                 }
             }
         });
@@ -83,18 +96,18 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.camera_btn){
+        if (v.getId() == R.id.camera_btn) {
             isRecording = !isRecording;
             mViewBinding.cameraImage.setSelected(isRecording);
-            if (!isRecording){
+            if (!isRecording) {
                 x264Encode.release();
-            }else {
-                h264Path = getExternalCacheDir()+ File.separator+System.currentTimeMillis()+".h264";
-                x264Encode.init(720,1080, h264Path, YUVFormat.YUV_NV21);
+            } else {
+                h264Path = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".h264";
+                x264Encode.init(720, 1440, h264Path, YUVFormat.YUV_NV21);
             }
-        }else if (v.getId() == R.id.back_btn){
+        } else if (v.getId() == R.id.back_btn) {
             finish();
-        }else if (v.getId() == R.id.switch_btn){
+        } else if (v.getId() == R.id.switch_btn) {
             // 切换摄像头
             onSwitchCamera();
         }
@@ -104,11 +117,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     /**
      * 切换摄像头
      */
-    private void onSwitchCamera(){
-        if (mCameraLoader!=null){
+    private void onSwitchCamera() {
+        if (mCameraLoader != null) {
             mCameraLoader.switchCamera();
             SurfaceHolder holder = mPreview.getHolder();
-            if (holder!=null){
+            if (holder != null) {
                 try {
                     mCameraLoader.cameraInstance.setPreviewDisplay(holder);
                     mCameraLoader.cameraInstance.startPreview();
@@ -119,4 +132,5 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
         }
     }
+
 }
