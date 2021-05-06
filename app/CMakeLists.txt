@@ -29,13 +29,35 @@ SET_TARGET_PROPERTIES(
         ${CMAKE_SOURCE_DIR}/${JNI_LIBS_DIR}/${CMAKE_ANDROID_ARCH_ABI}/libx264.a
 )
 
+include_directories(src/main/cpp/libx264)
+
 add_library(
         h264-encode
         SHARED
         src/main/cpp/h264-encode.cpp src/main/cpp/safe_queue.c
 )
 
-include_directories(src/main/cpp)
+
+add_library(
+        rtmp
+        SHARED
+        IMPORTED )
+
+
+SET_TARGET_PROPERTIES(
+        rtmp
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/${JNI_LIBS_DIR}/${CMAKE_ANDROID_ARCH_ABI}/librtmp.so
+)
+
+include_directories(src/main/cpp/librtmp)
+
+
+add_library(
+        rtmp-core
+        SHARED
+        src/main/cpp/rtmp_core.c
+)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -65,6 +87,8 @@ target_link_libraries( # Specifies the target library.
 #                       native-lib
                        h264-encode
                        h264
+                       rtmp-core
+                       rtmp
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )
