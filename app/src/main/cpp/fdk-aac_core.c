@@ -18,15 +18,15 @@ int fdk_aac_open(int sample_rate, int channel, int bitrate) {
         LOGE("failed to open aac encoder!");
         return -1;
     }
-    // 设置编码规格
-    ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_AOT, AOT_AAC_LC);
+    // 设置编码规格 - 低延迟
+    ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_AOT, AOT_ER_AAC_LD);
     if (ret != AACENC_OK) {
         LOGE("failed to set aac encode aot!");
         return -1;
     }
-    // 设置采样率
+    // 设置采样率 - 默认48000
     if (sample_rate <= 0) {
-        sample_rate = 44100;
+        sample_rate = 48000;
     }
     ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_SAMPLERATE, sample_rate);
     if (ret != AACENC_OK) {
@@ -66,8 +66,20 @@ int fdk_aac_open(int sample_rate, int channel, int bitrate) {
         LOGE("failed to set aac encode muxer!");
         return -1;
     }
+    // 设置元数据长度
+    ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_GRANULE_LENGTH, 480);
+    if (ret != AACENC_OK) {
+        LOGE("failed to set aac encode granule length!");
+        return -1;
+    }
+    // 设置编码复用个数
+    ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_TPSUBFRAMES, 2);
+    if (ret != AACENC_OK) {
+        LOGE("failed to set aac encode sub frames!");
+        return -1;
+    }
     // 初始化编码器
-    ret = aacEncEncode(aac_encoder_handler, NULL,NULL,NULL,NULL);
+    ret = aacEncEncode(aac_encoder_handler, NULL, NULL, NULL, NULL);
     if (ret != AACENC_OK) {
         LOGE("failed to init aac encoder!");
         return -1;
@@ -81,17 +93,17 @@ int fdk_aac_open(int sample_rate, int channel, int bitrate) {
     return ret;
 }
 
-int fdk_aac_encode(char *in_data, int in_size){
+int fdk_aac_encode(char *in_data, int in_size) {
     AACENC_BufDesc *in_buf = malloc(sizeof(AACENC_BufDesc));
     AACENC_BufDesc *out_buf = malloc(sizeof(AACENC_BufDesc));
     AACENC_InArgs *in_args = malloc(sizeof(AACENC_InArgs));
     AACENC_OutArgs *out_args = malloc(sizeof(AACENC_OutArgs));
 
-    in_buf->bufs = (void**)in_data;
+    in_buf->bufs = (void **) in_data;
     in_args->numInSamples = in_size;
-    int ret = aacEncEncode(aac_encoder_handler,in_buf,out_buf,in_args,out_args);
+    int ret = aacEncEncode(aac_encoder_handler, in_buf, out_buf, in_args, out_args);
 //    fwrite(out_buf->bufs, 1, out_args->numOutBytes, outstream);
-    if (ret != AACENC_OK){
+    if (ret != AACENC_OK) {
         LOGE("failed to encode pcm data to aac data!");
         return -1;
     }

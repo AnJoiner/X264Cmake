@@ -2,13 +2,13 @@
 // Created by c2yu on 2021/5/6.
 //
 
-#include <rtmp.h>
+#include "rtmp.h"
 #include "android/log.h"
-#include "log.h"
-#include "stdio.h"
-#include "string.h"
-#include "stdbool.h"
-#include "malloc.h"
+#include "librtmp/log.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <malloc.h>
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "rtmp-core", __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO  , "rtmp-core", __VA_ARGS__)
