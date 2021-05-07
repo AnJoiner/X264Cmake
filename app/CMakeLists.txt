@@ -59,6 +59,26 @@ add_library(
         src/main/cpp/rtmp_core.c
 )
 
+add_library(
+        fdk-aac
+        STATIC
+        IMPORTED )
+
+
+SET_TARGET_PROPERTIES(
+        fdk-aac
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/${JNI_LIBS_DIR}/${CMAKE_ANDROID_ARCH_ABI}/libfdk-aac.a
+)
+
+include_directories(src/main/cpp/libfdk-aac)
+
+add_library(
+        fdk-aac-core
+        SHARED
+        src/main/cpp/fdk-aac_core.c
+)
+
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
@@ -89,6 +109,8 @@ target_link_libraries( # Specifies the target library.
                        h264
                        rtmp-core
                        rtmp
+                       fdk-aac-core
+                       fdk-aac
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )
