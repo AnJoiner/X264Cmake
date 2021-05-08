@@ -32,7 +32,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     // 相机
     private CameraLoader mCameraLoader;
     // 音频录制
-//    private AudioLoader mAudioLoader;
+    private AudioLoader mAudioLoader;
     // 相机预览
     private CameraPreview mPreview;
     // 是否正在录制
@@ -43,6 +43,10 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private String h264Path;
     // aac音频存储地址
     private String aacPath;
+
+    private final int sampleRate = 44100;
+    private final int channel = 2;
+    private final int bitrate = 96000;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, CameraActivity.class);
@@ -61,7 +65,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private void init() {
         initData();
         initCamera();
-//        initAudio();
+        initAudio();
         initListener();
     }
 
@@ -79,11 +83,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                     int rotate = mCameraLoader.getRotation();
                     if (mCameraLoader.cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                         if (rotate == 90) {
-                            x264Encode.encodeData(YUV420Utils.rotate90(data, width, height));
+                            x264Encode.encode_x264_data(YUV420Utils.rotate90(data, width, height));
                         }
                     } else {
                         if (rotate == 90) {
-                            x264Encode.encodeData(YUV420Utils.rotate270(data, width, height));
+                            x264Encode.encode_x264_data(YUV420Utils.rotate270(data, width, height));
                         }
                     }
 
@@ -96,14 +100,17 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
 
     private void initAudio() {
-//        mAudioLoader = new AudioLoader();
-//        mAudioLoader.init();
-//        mAudioLoader.setOnAudioRecordListener(new AudioLoader.OnAudioRecordListener() {
-//            @Override
-//            public void onAudioRecord(byte[] bytes, int offsetInBytes, int sizeInBytes) {
-//
-//            }
-//        });
+        mAudioLoader = new AudioLoader();
+        mAudioLoader.init(sampleRate,channel);
+        mAudioLoader.setOnAudioRecordListener(new AudioLoader.OnAudioRecordListener() {
+            @Override
+            public void onAudioRecord(byte[] data, int offsetInBytes, int sizeInBytes) {
+                if (isRecording) {
+                    LogUtils.d("fdkaac-encode data size ===>>> " + data.length);
+                    x264Encode.encode_aac_data(data);
+                }
+            }
+        });
     }
 
     private void initListener() {
@@ -118,13 +125,15 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             isRecording = !isRecording;
             mViewBinding.cameraImage.setSelected(isRecording);
             if (!isRecording) {
-                x264Encode.release();
-//                mAudioLoader.stopRecord();
+                x264Encode.release_x264();
+                x264Encode.release_aac();
+                mAudioLoader.stopRecord();
             } else {
                 h264Path = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".h264";
-                x264Encode.init(720, 1440, h264Path, YUVFormat.YUV_NV21);
+                x264Encode.init_x264(720, 1440, h264Path, YUVFormat.YUV_NV21);
                 aacPath = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".aac";
-//                mAudioLoader.startRecord();
+                x264Encode.init_aac(sampleRate, channel, bitrate, aacPath);
+                mAudioLoader.startRecord();
             }
         } else if (v.getId() == R.id.back_btn) {
             finish();
@@ -157,8 +166,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     protected void onDestroy() {
         super.onDestroy();
-//        if (mAudioLoader != null) {
-//            mAudioLoader.release();
-//        }
+        if (mAudioLoader != null) {
+            mAudioLoader.release();
+        }
     }
 }

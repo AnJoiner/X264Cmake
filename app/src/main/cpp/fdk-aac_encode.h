@@ -6,6 +6,21 @@
 #define X264CMAKE_FDK_AAC_CORE_H
 
 #endif //X264CMAKE_FDK_AAC_CORE_H
+enum {
+    FDKAAC_ENC_OK = 0,
+    FDKAAC_ENC_FAIL = -1
+};
+
+enum {
+    FDKAAC_ENC_UNINITIALIZED,
+    FDKAAC_ENC_INITIALIZED
+};
+
+enum {
+    FDKAAC_ENC_ENCODING,
+    FDKAAC_ENC_STOPPED
+};
+
 
 /**
  * open the aac encode and config the params
@@ -15,7 +30,7 @@
  * @param aac_path
  * @return 0 success -1 failure
  */
-int fdk_aac_open(int sample_rate, int channel, int bitrate, char *aac_path);
+int fdk_aac_enc_init(int sample_rate, int channel, int bitrate,const char *aac_path);
 
 /**
  * encode per audio frame
@@ -23,17 +38,10 @@ int fdk_aac_open(int sample_rate, int channel, int bitrate, char *aac_path);
  * @param size
  * @return 0 success -1 failure
  */
-int fdk_aac_encode(char *in_data, int size);
-/**
- * encode per audio frame
- * @param in_data
- * @param size
- * @return 0 success -1 failure
- */
-int fdk_aac_encode_data(char *in_data, int size);
+int fdk_aac_enc_data(char *buffer, int size);
 
 /**
- * close the aac encode.
+ * release the aac encode.
  * @return 0 success -1 failure
  */
-int fdk_aac_close();
+void fdk_aac_enc_release();

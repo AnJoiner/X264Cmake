@@ -34,10 +34,12 @@ include_directories(src/main/cpp/libx264)
 add_library(
         h264-encode
         SHARED
-        src/main/cpp/h264-encode.cpp src/main/cpp/safe_queue.c src/main/cpp/fdk-aac_core.c
+        src/main/cpp/h264-encode.cpp
+        src/main/cpp/x264_encode.c
+        src/main/cpp/safe_queue.c
+        src/main/cpp/fdk-aac_encode.c
         src/main/cpp/rtmp_core.c
 )
-
 
 add_library(
         rtmp
@@ -73,6 +75,8 @@ SET_TARGET_PROPERTIES(
 )
 
 include_directories(src/main/cpp/libfdk-aac)
+
+
 
 #add_library(
 #        fdk-aac-encode

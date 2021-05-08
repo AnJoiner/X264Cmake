@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 //                String content = "this is byte array";
 //                LogUtils.d("content length is "+ content.length());
 //                mX264Encode.initQueue(content.getBytes());
-                mX264Encode.encode(width, height, yuvPath, h264Path, YUVFormat.YUV_420);
+                mX264Encode.encode_x264(width, height, yuvPath, h264Path, YUVFormat.YUV_420);
                 h264ToMp4();
             }
         });

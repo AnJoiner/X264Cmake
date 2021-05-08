@@ -9,10 +9,15 @@ import com.coder.x264cmake.annotation.YUVFormat;
 public class X264Encode {
     static {
         System.loadLibrary("h264-encode");
+        System.loadLibrary("rtmp");
     }
-    public native int initQueue(byte[] bytes);
-    public native int init(int width,int height, String h264Path, @YUVFormat int format);
-    public native int encodeData(byte[] data);
-    public native void release();
-    public native int encode(int width,int height,String yuvPath,String h264Path,@YUVFormat int format);
+    public native int init_x264(int width,int height, String h264Path, @YUVFormat int format);
+    public native int encode_x264_data(byte[] data);
+    public native void release_x264();
+    public native int encode_x264(int width,int height,String yuvPath,String h264Path,@YUVFormat int format);
+
+
+    public native int init_aac(int sample_rate, int channel, int bitrate, String aac_path);
+    public native int encode_aac_data(byte[] data);
+    public native void release_aac();
 }

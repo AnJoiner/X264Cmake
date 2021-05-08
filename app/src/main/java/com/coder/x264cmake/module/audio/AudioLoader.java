@@ -13,17 +13,19 @@ public class AudioLoader {
     // 最小可缓存
     private int bufferSizeInBytes;
 
+    private Thread mThread;
+
     public void setOnAudioRecordListener(OnAudioRecordListener onAudioRecordListener) {
         this.onAudioRecordListener = onAudioRecordListener;
     }
 
-    public void init() {
-        init(0, 0, 0);
+    public void init(int sampleRateInHz, int channelConfig) {
+        init(sampleRateInHz, channelConfig, 0);
     }
 
     public void init(int sampleRateInHz, int channelConfig, int audioFormat) {
         if (sampleRateInHz <= 0) {
-            sampleRateInHz = 48000;
+            sampleRateInHz = 44100;
         }
         if (channelConfig <= 0) {
             channelConfig = AudioFormat.CHANNEL_IN_STEREO;
@@ -43,8 +45,13 @@ public class AudioLoader {
         if (audioRecord != null && audioRecord.getState() == AudioRecord.STATE_INITIALIZED
                 && audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_STOPPED) {
             audioRecord.startRecording();
-
-            executeReadData();
+            mThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    executeReadData();
+                }
+            });
+            mThread.start();
         }
     }
 
@@ -65,6 +72,18 @@ public class AudioLoader {
         if (audioRecord != null && audioRecord.getState() == AudioRecord.STATE_INITIALIZED
                 && audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
             audioRecord.stop();
+            stopThread();
+        }
+    }
+
+    private void stopThread(){
+        if (mThread != null){
+            try {
+                mThread.join();
+                mThread =null;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
