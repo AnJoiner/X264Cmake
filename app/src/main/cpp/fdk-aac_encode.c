@@ -90,17 +90,17 @@ int fdk_aac_enc_init(int sample_rate, int channel, int bitrate, const char *aac_
         return FDKAAC_ENC_FAIL;
     }
     // 声道顺序
-    ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_CHANNELORDER, 1);
-    if (ret != AACENC_OK) {
-        LOGE("Failed to set aac encode channel order!");
-        return FDKAAC_ENC_FAIL;
-    }
+//    ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_CHANNELORDER, 1);
+//    if (ret != AACENC_OK) {
+//        LOGE("Failed to set aac encode channel order!");
+//        return FDKAAC_ENC_FAIL;
+//    }
     // 设置码率模式
-    ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_BITRATEMODE, 0);
-    if (ret != AACENC_OK) {
-        LOGE("Failed to set aac encode bitrate mode!");
-        return FDKAAC_ENC_FAIL;
-    }
+//    ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_BITRATEMODE, 0);
+//    if (ret != AACENC_OK) {
+//        LOGE("Failed to set aac encode bitrate mode!");
+//        return FDKAAC_ENC_FAIL;
+//    }
     // 设置码率
     ret = aacEncoder_SetParam(aac_encoder_handler, AACENC_BITRATE, bitrate);
     if (ret != AACENC_OK) {
