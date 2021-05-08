@@ -16,6 +16,7 @@ import com.coder.x264cmake.R;
 import com.coder.x264cmake.annotation.YUVFormat;
 import com.coder.x264cmake.databinding.ActivityCameraBinding;
 import com.coder.x264cmake.jni.X264Encode;
+import com.coder.x264cmake.module.audio.AudioLoader;
 import com.coder.x264cmake.module.camera.loader.CameraLoader;
 import com.coder.x264cmake.utils.LogUtils;
 import com.coder.x264cmake.utils.YUV420Utils;
@@ -30,6 +31,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private ActivityCameraBinding mViewBinding;
     // 相机
     private CameraLoader mCameraLoader;
+    // 音频录制
+//    private AudioLoader mAudioLoader;
     // 相机预览
     private CameraPreview mPreview;
     // 是否正在录制
@@ -38,6 +41,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private X264Encode x264Encode;
     // h264视频存储地址
     private String h264Path;
+    // aac音频存储地址
+    private String aacPath;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, CameraActivity.class);
@@ -56,6 +61,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private void init() {
         initData();
         initCamera();
+//        initAudio();
         initListener();
     }
 
@@ -71,12 +77,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 if (isRecording) {
                     LogUtils.d("h264-encode data size ===>>> " + data.length);
                     int rotate = mCameraLoader.getRotation();
-                    if (mCameraLoader.cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK){
-                        if (rotate == 90){
+                    if (mCameraLoader.cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                        if (rotate == 90) {
                             x264Encode.encodeData(YUV420Utils.rotate90(data, width, height));
                         }
-                    }else {
-                        if (rotate == 90){
+                    } else {
+                        if (rotate == 90) {
                             x264Encode.encodeData(YUV420Utils.rotate270(data, width, height));
                         }
                     }
@@ -86,6 +92,18 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         });
         mPreview = new CameraPreview(this, mCameraLoader);
         mViewBinding.cameraPreview.addView(mPreview);
+    }
+
+
+    private void initAudio() {
+//        mAudioLoader = new AudioLoader();
+//        mAudioLoader.init();
+//        mAudioLoader.setOnAudioRecordListener(new AudioLoader.OnAudioRecordListener() {
+//            @Override
+//            public void onAudioRecord(byte[] bytes, int offsetInBytes, int sizeInBytes) {
+//
+//            }
+//        });
     }
 
     private void initListener() {
@@ -101,9 +119,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             mViewBinding.cameraImage.setSelected(isRecording);
             if (!isRecording) {
                 x264Encode.release();
+//                mAudioLoader.stopRecord();
             } else {
                 h264Path = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".h264";
                 x264Encode.init(720, 1440, h264Path, YUVFormat.YUV_NV21);
+                aacPath = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".aac";
+//                mAudioLoader.startRecord();
             }
         } else if (v.getId() == R.id.back_btn) {
             finish();
@@ -133,4 +154,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        if (mAudioLoader != null) {
+//            mAudioLoader.release();
+//        }
+    }
 }

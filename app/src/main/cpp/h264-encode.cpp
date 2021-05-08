@@ -13,6 +13,7 @@ extern "C" {
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "h264-encode", __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO  , "h264-encode", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR  , "h264-encode", __VA_ARGS__)
+#define LOGF(...) __android_log_print(ANDROID_LOG_INFO  , "h264-diff", __VA_ARGS__)
 
 uint32_t x264_csp;
 uint32_t x264_width;
@@ -140,6 +141,7 @@ int encode_core() {
         return -1;
     }
     char *buffer = pop_data(h264_queue);
+
     if (buffer == NULL) {
         LOGE("buffer is null and return -1");
         return -1;
@@ -267,7 +269,7 @@ Java_com_coder_x264cmake_jni_X264Encode_encodeData(JNIEnv *env, jobject thiz, jb
 //    //     结尾'\0'
 //    buffer[size] = 0;
 
-    LOGD("incoming data size %ld", strlen(buffer));
+    LOGF("incoming data size %d", strlen(buffer));
     // 释放资源
     env->ReleaseByteArrayElements(data, bytes, 0);
     // 在用户没有停止编码的情况下，将数据放入队列

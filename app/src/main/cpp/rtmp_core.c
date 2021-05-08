@@ -2,7 +2,7 @@
 // Created by c2yu on 2021/5/6.
 //
 
-#include "rtmp.h"
+#include "librtmp/rtmp.h"
 #include "android/log.h"
 #include "librtmp/log.h"
 #include <stdio.h>

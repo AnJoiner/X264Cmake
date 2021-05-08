@@ -34,7 +34,8 @@ include_directories(src/main/cpp/libx264)
 add_library(
         h264-encode
         SHARED
-        src/main/cpp/h264-encode.cpp src/main/cpp/safe_queue.c
+        src/main/cpp/h264-encode.cpp src/main/cpp/safe_queue.c src/main/cpp/fdk-aac_core.c
+        src/main/cpp/rtmp_core.c
 )
 
 
@@ -53,11 +54,11 @@ SET_TARGET_PROPERTIES(
 include_directories(src/main/cpp/librtmp)
 
 
-add_library(
-        rtmp-core
-        SHARED
-        src/main/cpp/rtmp_core.c
-)
+#add_library(
+#        rtmp-core
+#        SHARED
+#        src/main/cpp/rtmp_core.c
+#)
 
 add_library(
         fdk-aac
@@ -73,11 +74,11 @@ SET_TARGET_PROPERTIES(
 
 include_directories(src/main/cpp/libfdk-aac)
 
-add_library(
-        fdk-aac-core
-        SHARED
-        src/main/cpp/fdk-aac_core.c
-)
+#add_library(
+#        fdk-aac-encode
+#        SHARED
+#        src/main/cpp/fdk-aac_core.c src/main/cpp/safe_queue.c
+#)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -107,9 +108,7 @@ target_link_libraries( # Specifies the target library.
 #                       native-lib
                        h264-encode
                        h264
-                       rtmp-core
                        rtmp
-                       fdk-aac-core
                        fdk-aac
                        # Links the target library to the log library
                        # included in the NDK.
