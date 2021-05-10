@@ -3,6 +3,7 @@ package com.coder.x264cmake.module.camera.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
+import android.media.AudioFormat;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.coder.x264cmake.R;
 import com.coder.x264cmake.annotation.YUVFormat;
 import com.coder.x264cmake.databinding.ActivityCameraBinding;
+import com.coder.x264cmake.jni.RtmpPusher;
 import com.coder.x264cmake.jni.X264Encode;
 import com.coder.x264cmake.module.audio.AudioLoader;
 import com.coder.x264cmake.module.camera.loader.CameraLoader;
@@ -23,8 +25,13 @@ import com.coder.x264cmake.utils.YUV420Utils;
 import com.coder.x264cmake.widgets.CameraPreview;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import static android.media.AudioFormat.CHANNEL_IN_STEREO;
+import static android.media.AudioFormat.ENCODING_PCM_16BIT;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -47,6 +54,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private final int sampleRate = 44100;
     private final int channel = 2;
     private final int bitrate = 96000;
+
+
+    private RtmpPusher mRtmpPusher;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, CameraActivity.class);
@@ -71,6 +81,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     private void initData() {
         x264Encode = new X264Encode();
+        mRtmpPusher = new RtmpPusher();
     }
 
     private void initCamera() {
@@ -101,7 +112,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     private void initAudio() {
         mAudioLoader = new AudioLoader();
-        mAudioLoader.init(sampleRate,channel);
+        mAudioLoader.init(sampleRate, CHANNEL_IN_STEREO, ENCODING_PCM_16BIT);
         mAudioLoader.setOnAudioRecordListener(new AudioLoader.OnAudioRecordListener() {
             @Override
             public void onAudioRecord(byte[] data, int offsetInBytes, int sizeInBytes) {
@@ -114,9 +125,21 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void initListener() {
+
         mViewBinding.cameraBtn.setOnClickListener(this);
         mViewBinding.backBtn.setOnClickListener(this);
         mViewBinding.switchBtn.setOnClickListener(this);
+
+        x264Encode.setOnEncodeListener(new X264Encode.OnEncodeListener() {
+            @Override
+            public void onEncodeH264(byte[] bytes, int size) {
+                mRtmpPusher.rtmp_pusher_push_video(bytes,size,System.currentTimeMillis());
+            }
+
+            @Override
+            public void onEncodeAAC(byte[] bytes, int size) {
+            }
+        });
     }
 
     @Override
@@ -128,7 +151,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 x264Encode.release_x264();
                 x264Encode.release_aac();
                 mAudioLoader.stopRecord();
+                mRtmpPusher.rtmp_pusher_close();
             } else {
+                mRtmpPusher.rtmp_pusher_open("rtmp://192.168.10.161:8080/toto/live",720,1440);
                 h264Path = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".h264";
                 x264Encode.init_x264(720, 1440, h264Path, YUVFormat.YUV_NV21);
                 aacPath = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".aac";

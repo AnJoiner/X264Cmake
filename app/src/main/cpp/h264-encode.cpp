@@ -5,23 +5,35 @@
 #include "android/log.h"
 
 extern "C" {
+#include "h264-encode.h"
 #include "x264.h"
 #include "jni.h"
 #include "safe_queue.h"
 #include "x264_encode.h"
-#include "fdk-aac_encode.h"
+#include "faac_encode.h"
+//#include "fdk-aac_encode.h"
 }
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "h264-encode", __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO  , "h264-encode", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR  , "h264-encode", __VA_ARGS__)
 
+// Java虚拟机
+JavaVM *java_vm;
+// 公用环境变量
+JNIEnv *jni_env;
+// 类对象
+jobject c_h264_obj;
+jobject c_aac_obj;
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_coder_x264cmake_jni_X264Encode_init_1aac(JNIEnv *env, jobject thiz, jint sample_rate,
                                                   jint channel, jint bitrate, jstring aac_path) {
+    jni_env = env;
+    c_aac_obj = jni_env->NewGlobalRef(thiz);
     const char *aac_file_path = env->GetStringUTFChars(aac_path, JNI_FALSE);
-    return fdk_aac_enc_init(sample_rate, channel,bitrate,aac_file_path);
+    return faac_enc_init(sample_rate, channel, bitrate, 16, aac_file_path);
 }
 
 extern "C"
@@ -37,27 +49,35 @@ Java_com_coder_x264cmake_jni_X264Encode_encode_1aac_1data(JNIEnv *env, jobject t
     LOGI("incoming pcm data size %ld", strlen(buffer));
     // 释放资源
     env->ReleaseByteArrayElements(data, bytes, 0);
-    return fdk_aac_enc_data(buffer,size);
+    int ret = faac_enc_data(buffer, size);
+    delete[] buffer;
+    return ret;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_coder_x264cmake_jni_X264Encode_release_1aac(JNIEnv *env, jobject thiz) {
-    fdk_aac_enc_release();
+    jni_env = env;
+    jni_env->DeleteGlobalRef(c_aac_obj);
+    faac_enc_release();
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_coder_x264cmake_jni_X264Encode_init_1x264(JNIEnv *env, jobject thiz, jint width, jint height,
-                                             jstring h264_path, jint yuv_csp) {
+Java_com_coder_x264cmake_jni_X264Encode_init_1x264(JNIEnv *env, jobject thiz, jint width,
+                                                   jint height,
+                                                   jstring h264_path, jint yuv_csp) {
+    jni_env = env;
+    c_h264_obj = jni_env->NewGlobalRef(thiz);
     const char *x264_file_path = env->GetStringUTFChars(h264_path, JNI_FALSE);
-    return x264_enc_init(width,height,x264_file_path,yuv_csp);
+    return x264_enc_init(width, height, x264_file_path, yuv_csp);
 }
 
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_coder_x264cmake_jni_X264Encode_encode_1x264_1data(JNIEnv *env, jobject thiz, jbyteArray data) {
+Java_com_coder_x264cmake_jni_X264Encode_encode_1x264_1data(JNIEnv *env, jobject thiz,
+                                                           jbyteArray data) {
     jbyte *bytes = env->GetByteArrayElements(data, JNI_FALSE);
     int64_t size = env->GetArrayLength(data);
     char *buffer = new char[size];
@@ -73,24 +93,28 @@ Java_com_coder_x264cmake_jni_X264Encode_encode_1x264_1data(JNIEnv *env, jobject 
     LOGI("incoming yuv data size %ld", strlen(buffer));
     // 释放资源
     env->ReleaseByteArrayElements(data, bytes, 0);
-
-    return x264_enc_data(buffer);
+    int ret = x264_enc_data(buffer);
+    delete[] buffer;
+    return ret;
 }
 
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_coder_x264cmake_jni_X264Encode_release_1x264(JNIEnv *env, jobject thiz) {
-   x264_enc_release();
+    jni_env = env;
+    jni_env->DeleteGlobalRef(c_h264_obj);
+    x264_enc_release();
 }
 
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_coder_x264cmake_jni_X264Encode_encode_1x264(JNIEnv *env, jobject thiz, jint width, jint height,
-                                               jstring yuv_path, jstring h264_path, jint yuv_csp) {
+Java_com_coder_x264cmake_jni_X264Encode_encode_1x264(JNIEnv *env, jobject thiz, jint width,
+                                                     jint height,
+                                                     jstring yuv_path, jstring h264_path,
+                                                     jint yuv_csp) {
     int ret = 0;
-    // TODO: implement encode()
     if (width == 0 || height == 0) {
         LOGE("width or height cannot be zero!");
     }
@@ -237,7 +261,7 @@ Java_com_coder_x264cmake_jni_X264Encode_encode_1x264(JNIEnv *env, jobject thiz, 
         if (ret == 0) {
             break;
         }
-        LOGD("flush %d frame",i);
+        LOGD("flush %d frame", i);
         // 将编码数据循环写入目标文件
         for (int j = 0; j < i_nal; ++j) {
             fwrite(nal[j].p_payload, 1, nal[j].i_payload, h264_file);
@@ -256,4 +280,40 @@ Java_com_coder_x264cmake_jni_X264Encode_encode_1x264(JNIEnv *env, jobject thiz, 
     fclose(h264_file);
 
     return ret;
+}
+
+void call_java_encode_h264(unsigned char *data, int size) {
+    if (!c_h264_obj || !jni_env) {
+        LOGE("Jni env is NULL, Check it!");
+        return;
+    }
+    jclass cls = jni_env->GetObjectClass(c_h264_obj);
+    if (!cls) {
+        LOGE("Class is not found, Check it!");
+        return;
+    }
+    // 获取到当前方法
+    jmethodID method_id = jni_env->GetMethodID(cls, "onEncodeH264", "([BI)V");
+    jbyteArray byte_array = jni_env->NewByteArray(size);
+    jni_env->SetByteArrayRegion(byte_array, 0, size, (jbyte *)data);
+    jni_env->CallVoidMethod(c_h264_obj, method_id, byte_array, size);
+}
+
+
+void call_java_encode_aac(unsigned char *data, int size) {
+//    if (!c_aac_obj || !jni_env) {
+//        LOGE("Jni env is NULL, Check it!");
+//        return;
+//    }
+//    jclass cls = jni_env->GetObjectClass(c_aac_obj);
+////    jclass cls = jni_env->FindClass("com/coder/x264cmake/jni/X264Encode");
+//    if (!cls) {
+//        LOGE("Class is not found, Check it!");
+//        return;
+//    }
+//    // 获取到当前方法
+//    jmethodID method_id = jni_env->GetMethodID(cls, "onEncodeAAC","([BI)V");
+//    jbyteArray byte_array = jni_env->NewByteArray(size);
+//    jni_env->SetByteArrayRegion(byte_array, 0, size, (jbyte *)data);
+//    jni_env->CallVoidMethod(c_aac_obj, method_id, byte_array, size);
 }

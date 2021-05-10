@@ -10,6 +10,7 @@
 #include "x264_encode.h"
 #include "android/log.h"
 #include "safe_queue.h"
+#include "h264-encode.h"
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "x264-encode", __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO  , "x264-encode", __VA_ARGS__)
@@ -17,7 +18,7 @@
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN  , "x264-encode", __VA_ARGS__)
 
 // 输出文件
-FILE *x264_file;
+//FILE *x264_file;
 // h264的队列
 LinkedQueue *h264_queue;
 
@@ -47,11 +48,11 @@ int x264_enc_init(int width, int height, const char *x264_file_path, int yuv_for
         LOGE("h264 path cannot be null");
         return X264_ENC_FAIL;
     }
-    x264_file = fopen(x264_file_path, "w+");
-    if (x264_file == NULL) {
-        LOGE("cannot open h264 file");
-        return X264_ENC_FAIL;
-    }
+//    x264_file = fopen(x264_file_path, "w+");
+//    if (x264_file == NULL) {
+//        LOGE("cannot open h264 file");
+//        return X264_ENC_FAIL;
+//    }
 
     h264_queue = create_queue();
     if (h264_queue == NULL) {
@@ -164,14 +165,27 @@ int x264_enc_encode_data() {
     }
     LOGI("encode frame: %d\n", i_frame);
     // 将编码数据循环写入目标文件
+    int sps_i = 0;
     for (int j = 0; j < i_nal; ++j) {
         if (nal[j].i_type == NAL_SPS) {
             LOGI("this nal is sps, count is: %d", nal[j].i_payload);
-        }
-        if (nal[j].i_type == NAL_PPS) {
+            sps_i = j;
+        } else if (nal[j].i_type == NAL_PPS) {
             LOGI("this nal is pps, count is: %d", nal[j].i_payload);
+            int size = nal[sps_i].i_payload + nal[j].i_payload;
+            unsigned char data[size];
+            memcpy(data,nal[sps_i].p_payload,nal[sps_i].i_payload);
+            int pps_i = 0;
+            for (int i = nal[sps_i].i_payload; i < size; ++i) {
+                data[i] = nal[j].p_payload[pps_i];
+                pps_i++;
+            }
+            call_java_encode_h264(data, size);
+        } else {
+            // 回调java层x264编码结果
+            call_java_encode_h264(nal[j].p_payload, nal[j].i_payload);
+//        fwrite(nal[j].p_payload, 1, nal[j].i_payload, x264_file);
         }
-        fwrite(nal[j].p_payload, 1, nal[j].i_payload, x264_file);
     }
     i_frame++;
     return X264_ENC_OK;
@@ -186,7 +200,7 @@ void x264_enc_release_data() {
     free(pic_out);
     free(param);
     // 关闭文件输入
-    fclose(x264_file);
+//    fclose(x264_file);
 
     LOGI("Succeed to release x264!");
 }
@@ -197,7 +211,7 @@ int x264_enc_data(char *buffer) {
         LOGE(" X264 encoder can be used After it is initialized!");
         return X264_ENC_FAIL;
     }
-    if (h264_queue == NULL){
+    if (h264_queue == NULL) {
         LOGE("X264 data queue can be used After it is initialized!");
         return X264_ENC_FAIL;
     }
@@ -224,7 +238,7 @@ int x264_enc_data(char *buffer) {
 
 
 void x264_enc_release() {
-    if (x264_enc_encoding_state == X264_ENC_STOPPED){
+    if (x264_enc_encoding_state == X264_ENC_STOPPED) {
         // 当前编码已经停止
         x264_enc_release_data();
     }

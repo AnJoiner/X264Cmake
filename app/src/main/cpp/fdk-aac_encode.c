@@ -8,6 +8,7 @@
 #include "android/log.h"
 #include "fdk-aac_encode.h"
 #include "safe_queue.h"
+#include "h264-encode.h"
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "fdkaac-encode", __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO  , "fdkaac-encode", __VA_ARGS__)
@@ -52,7 +53,7 @@ int fdk_aac_enc_init(int sample_rate, int channel, int bitrate, const char *aac_
         return FDKAAC_ENC_FAIL;
     }
 
-    int ret = aacEncOpen(&aac_encoder_handler, 0, channel);
+    int ret = aacEncOpen(&aac_encoder_handler, 0, 0);
     if (ret != AACENC_OK) {
         LOGE("Failed to open aac encoder!");
         return FDKAAC_ENC_FAIL;
@@ -203,6 +204,7 @@ int fdk_aac_enc_encode_data(int in_size) {
     if (aac_file != NULL) {
         if (out_args.numOutBytes != 0) {
             LOGI("Writing %d bytes to file!", out_args.numOutBytes);
+//            call_java_encode_aac(aac_out_buffer,out_args.numOutBytes);
             fwrite(aac_out_buffer, 1, out_args.numOutBytes, aac_file);
         }
     }
@@ -211,7 +213,7 @@ int fdk_aac_enc_encode_data(int in_size) {
 
 void fdk_aac_enc_release_data() {
     // 关闭文件输入
-    fclose(aac_file);
+    if (aac_file != NULL) fclose(aac_file);
     int ret = aacEncClose(&aac_encoder_handler);
     if (ret == AACENC_OK) {
         LOGI("Succeed to release fdk-aac!");

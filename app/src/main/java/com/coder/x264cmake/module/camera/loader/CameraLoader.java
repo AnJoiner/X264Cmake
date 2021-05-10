@@ -186,7 +186,7 @@ public class CameraLoader {
     public void setPreviewFps(Camera.Parameters parameters){
         List<int[]> fpsRange = parameters.getSupportedPreviewFpsRange();
         for (int[] fps : fpsRange) {
-            LogUtils.d("CameraLoader===>>> fps[0]:"+fps[0]+", fps[1]:"+fps[1]);
+//            LogUtils.d("CameraLoader===>>> fps[0]:"+fps[0]+", fps[1]:"+fps[1]);
         }
 //        int[] fps = fpsRange.get(0);
     }
@@ -244,8 +244,8 @@ public class CameraLoader {
 
         for (int i = 0; i < mPictureSizes.size(); i++) {
             Camera.Size picture = mPictureSizes.get(i);
-            LogUtils.d("###### SupportedPictureSizes: width=" + picture.width + ", height="
-                    + picture.height);
+//            LogUtils.d("###### SupportedPictureSizes: width=" + picture.width + ", height="
+//                    + picture.height);
             if (null == biggestSize) {
                 biggestSize = picture;
             } else if (picture.width > biggestSize.width && picture.height > biggestSize.height) {
@@ -268,7 +268,7 @@ public class CameraLoader {
             fitSize = biggestSize;
         }
 
-        LogUtils.d("##### fit size: " + fitSize.width + ", height:" + fitSize.height);
+//        LogUtils.d("##### fit size: " + fitSize.width + ", height:" + fitSize.height);
         parameters.setPictureSize(fitSize.width, fitSize.height);
     }
 

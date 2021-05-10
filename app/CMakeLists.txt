@@ -32,16 +32,6 @@ SET_TARGET_PROPERTIES(
 include_directories(src/main/cpp/libx264)
 
 add_library(
-        h264-encode
-        SHARED
-        src/main/cpp/h264-encode.cpp
-        src/main/cpp/x264_encode.c
-        src/main/cpp/safe_queue.c
-        src/main/cpp/fdk-aac_encode.c
-        src/main/cpp/rtmp_core.c
-)
-
-add_library(
         rtmp
         SHARED
         IMPORTED )
@@ -76,6 +66,31 @@ SET_TARGET_PROPERTIES(
 
 include_directories(src/main/cpp/libfdk-aac)
 
+add_library(
+        faac
+        SHARED
+        IMPORTED )
+
+
+SET_TARGET_PROPERTIES(
+        faac
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/${JNI_LIBS_DIR}/${CMAKE_ANDROID_ARCH_ABI}/libfaac.so
+)
+
+include_directories(src/main/cpp/libfaac)
+
+add_library(
+        h264-encode
+        SHARED
+        src/main/cpp/h264-encode.cpp
+        src/main/cpp/rtmp_pusher.cpp
+        src/main/cpp/x264_encode.c
+        src/main/cpp/safe_queue.c
+        src/main/cpp/fdk-aac_encode.c
+        src/main/cpp/rtmp_core.c
+        src/main/cpp/faac_encode.c
+)
 
 
 #add_library(
@@ -90,12 +105,6 @@ include_directories(src/main/cpp/libfdk-aac)
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-add_library( # Sets the name of the library.
-        native-lib
-        # Sets the library as a shared library.
-        SHARED
-        # Provides a relative path to your source file(s).
-        src/main/cpp/native-lib.cpp)
 
 find_library( # Sets the name of the path variable.
               log-lib
@@ -109,11 +118,11 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-#                       native-lib
                        h264-encode
                        h264
                        rtmp
                        fdk-aac
+                       faac
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )

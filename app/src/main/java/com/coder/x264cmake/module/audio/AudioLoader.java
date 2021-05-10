@@ -60,9 +60,11 @@ public class AudioLoader {
         byte[] bytes = new byte[bufferSizeInBytes];
         while (audioRecord.getState() == AudioRecord.STATE_INITIALIZED
                 && audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-            audioRecord.read(bytes, 0, bufferSizeInBytes);
+           int ret = audioRecord.read(bytes, 0, bufferSizeInBytes);
             if (onAudioRecordListener != null) {
-                onAudioRecordListener.onAudioRecord(bytes, 0, bufferSizeInBytes);
+                if (ret!=AudioRecord.ERROR_BAD_VALUE || ret!=AudioRecord.ERROR_INVALID_OPERATION|| ret!=AudioRecord.ERROR_DEAD_OBJECT){
+                    onAudioRecordListener.onAudioRecord(bytes, 0, bufferSizeInBytes);
+                }
             }
         }
     }
