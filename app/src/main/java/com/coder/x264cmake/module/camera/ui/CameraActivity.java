@@ -133,7 +133,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         x264Encode.setOnEncodeListener(new X264Encode.OnEncodeListener() {
             @Override
             public void onEncodeH264(byte[] bytes, int size) {
-                mRtmpPusher.rtmp_pusher_push_video(bytes,size,System.currentTimeMillis());
+                mRtmpPusher.rtmp_pusher_push_video(bytes,size,System.currentTimeMillis()/1000);
             }
 
             @Override

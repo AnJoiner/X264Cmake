@@ -9,12 +9,12 @@
 
 enum {
     RTMP_ERROR = -1,
-    RTMP_OK
+    RTMP_OK = 0
 };
 
 enum {
     RTMP_CONNECTED_FAILURE = 0,
-    RTMP_CONNECTED_OK
+    RTMP_CONNECTED_OK = 1
 };
 
 int rtmp_pusher_open(char* url,unsigned int video_width, unsigned int video_height);

@@ -92,16 +92,26 @@ int x264_enc_init(int width, int height, const char *x264_file_path, int yuv_for
     pic_out = (x264_picture_t *) (malloc(sizeof(x264_picture_t)));
 
     // 初始化编码参数
-    x264_param_default(param);
-    x264_param_default_preset(param, x264_preset_names[0], x264_tune_names[7]);
+//    x264_param_default(param);
+    x264_param_default_preset(param, x264_preset_names[5], x264_tune_names[7]);
+
+    // 配置处理级别
+    x264_param_apply_profile(param, x264_profile_names[2]);
+    // 编码复杂度
+    param->i_level_idc = 32;
+
     param->i_width = width;
     param->i_height = height;
     param->i_csp = x264_csp;
-    // 配置处理级别
-    x264_param_apply_profile(param, x264_profile_names[2]);
-//    param->i_fps_num = 30;
-//    param->i_fps_den = 1;
-//    param->rc.i_rc_method = X264_RC_CRF;
+
+    param->i_fps_num = 30;
+    param->i_fps_den = 1;
+    param->rc.i_rc_method = X264_RC_ABR;
+    param->rc.i_bitrate = 1000;
+    param->rc.i_vbv_max_bitrate = 1200;
+    param->rc.i_vbv_buffer_size = 1000;
+
+
     // 通过配置的参数打开编码器
     h = x264_encoder_open(param);
 

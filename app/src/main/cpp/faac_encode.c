@@ -3,11 +3,13 @@
 //
 
 #include <stdio.h>
+#include <time.h>
 #include "faac_encode.h"
 #include "faac.h"
 #include "safe_queue.h"
 #include "android/log.h"
 #include "h264-encode.h"
+#include "rtmp_core.h"
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "faac-encode", __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO  , "faac-encode", __VA_ARGS__)
@@ -85,7 +87,7 @@ int faac_enc_init(uint64_t sample_rate, uint64_t channel, uint64_t bit_rate, uin
     // 设置0声道作为左声道
 //    faac_enc_configuration_ptr->useLfe = 0;
     // 设置比特率
-//    faac_enc_configuration_ptr->bitRate = bit_rate;
+    faac_enc_configuration_ptr->bitRate = bit_rate;
 
     // 将上述所有配置设置
     faacEncSetConfiguration(faac_enc_handle, faac_enc_configuration_ptr);
@@ -114,7 +116,10 @@ int faac_enc_encode_data(int in_size) {
 
     int out_byte_size = faacEncEncode(faac_enc_handle, data, in_samples, out_buffer, max_out_bytes);
     if (out_byte_size > 0) {
-        call_java_encode_aac(out_buffer,out_byte_size);
+//        time_t now;
+//        time(&now);
+//        rtmp_sender_write_audio_frame(out_buffer,out_byte_size,now,0);
+//        call_java_encode_aac(out_buffer,out_byte_size);
 //        fwrite(out_buffer, 1, out_byte_size, faac_file);
     }
     return FAAC_ENC_OK;
