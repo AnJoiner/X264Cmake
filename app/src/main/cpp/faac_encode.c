@@ -21,7 +21,7 @@ uint64_t max_out_bytes = 0;
 // faac实例句柄
 faacEncHandle faac_enc_handle;
 // 输出的aac文件
-//FILE *faac_file;
+FILE *faac_file;
 // h264的队列
 LinkedQueue *faac_queue;
 // fdk-aac初始化状态
@@ -40,11 +40,11 @@ int faac_enc_init(uint64_t sample_rate, uint64_t channel, uint64_t bit_rate, uin
         LOGE("AAC path cannot be NULL!");
         return FAAC_ENC_FAIL;
     }
-//    faac_file = fopen(aac_path, "wb");
-//    if (faac_file == NULL) {
-//        LOGE("Cannot open aac file");
-//        return FAAC_ENC_FAIL;
-//    }
+    faac_file = fopen(aac_path, "wb");
+    if (faac_file == NULL) {
+        LOGE("Cannot open aac file");
+        return FAAC_ENC_FAIL;
+    }
 
     faac_queue = create_queue();
     if (faac_queue == NULL) {
@@ -120,14 +120,14 @@ int faac_enc_encode_data(int in_size) {
 //        time(&now);
 //        rtmp_sender_write_audio_frame(out_buffer,out_byte_size,now,0);
 //        call_java_encode_aac(out_buffer,out_byte_size);
-//        fwrite(out_buffer, 1, out_byte_size, faac_file);
+        fwrite(out_buffer, 1, out_byte_size, faac_file);
     }
     return FAAC_ENC_OK;
 }
 
 void faac_enc_release_data() {
     // 关闭文件输入
-//    if (faac_file!=NULL) fclose(faac_file);
+    if (faac_file!=NULL) fclose(faac_file);
     faacEncClose(faac_enc_handle);
 
     in_samples = 0;
