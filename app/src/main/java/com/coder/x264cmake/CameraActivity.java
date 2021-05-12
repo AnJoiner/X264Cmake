@@ -93,7 +93,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 .create();
 
         mAudioConfig = new AudioConfig.Builder()
-                .setChannelCount(CHANNEL_IN_STEREO)
+                .setChannelCount(channel)
                 .setSampleRate(sampleRate)
                 .setBitRate(bitrate)
                 .create();
@@ -162,7 +162,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
                 mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,
-                        0);
+                        bufferInfo.presentationTimeUs/1000);
             }
         });
 
@@ -173,7 +173,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
                 mRtmpPusher.rtmp_pusher_push_audio(data,bufferInfo.size,
-                        0);
+                        bufferInfo.presentationTimeUs/1000);
             }
         });
 

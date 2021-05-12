@@ -1,5 +1,6 @@
 package com.coder.x264cmake.module.encode;
 
+import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -56,19 +57,24 @@ public class AudioEncoder implements IMediaEncoder {
     }
 
     private void initEnCoder() {
-        // 使用latm编码，涵盖所有
+        // 使用latm编码
         String mineType = "audio/mp4a-latm";
         try {
             mAudioCodec = MediaCodec.createEncoderByType(mineType);
         } catch (IOException e) {
             LogUtils.e("Failed to create audio encoder!");
         }
+
         MediaFormat format = MediaFormat.createAudioFormat(mineType,
                 mAudioConfig.sampleRate,
                 mAudioConfig.channelCount);
 
+        int channelConfig = AudioFormat.CHANNEL_IN_STEREO;
+        if (mAudioConfig.channelCount == 1){
+            channelConfig = AudioFormat.CHANNEL_IN_MONO;
+        }
         int bufferSizeInBytes = AudioRecord.getMinBufferSize(mAudioConfig.sampleRate,
-                mAudioConfig.channelCount, mAudioConfig.audioFormat);
+                channelConfig, mAudioConfig.audioFormat);
 
         format.setInteger(KEY_MAX_INPUT_SIZE, bufferSizeInBytes *2);
         // 设置ACC规格为LC

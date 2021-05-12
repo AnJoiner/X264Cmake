@@ -25,7 +25,7 @@ public class AudioConfig implements IConfig {
         // 音频格式，默认16bit
         private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
         // 声道数量，默认双声道
-        private int channelCount = AudioFormat.CHANNEL_IN_STEREO;
+        private int channelCount = 2;
         // 采样率, 默认44100
         private int sampleRate = 44100;
         // 输出格式，0 raw 1 adts
