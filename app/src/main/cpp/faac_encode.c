@@ -29,7 +29,7 @@ int faac_enc_state = FAAC_ENC_UNINITIALIZED;
 // fdk-aac编码状态
 int faac_enc_encoding_state = FAAC_ENC_STOPPED;
 
-int faac_enc_init(uint64_t sample_rate, uint64_t channel, uint64_t bit_rate, uint64_t pcm_bit_size,
+int faac_enc_init(unsigned long sample_rate, unsigned long  channel, unsigned long  bit_rate, unsigned long  pcm_bit_size,
                   const char *aac_path) {
 
     if (faac_enc_state == FAAC_ENC_INITIALIZED) {

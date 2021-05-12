@@ -3,7 +3,6 @@ package com.coder.x264cmake;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
-import android.media.AudioFormat;
 import android.media.MediaCodec;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,10 +12,8 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.coder.x264cmake.annotation.YUVFormat;
 import com.coder.x264cmake.databinding.ActivityCameraBinding;
 import com.coder.x264cmake.jni.RtmpPusher;
-import com.coder.x264cmake.jni.X264Encode;
 import com.coder.x264cmake.module.audio.AudioLoader;
 import com.coder.x264cmake.module.camera.CameraLoader;
 import com.coder.x264cmake.module.encode.AudioEncoder;
@@ -162,7 +159,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
                 mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,
-                        bufferInfo.presentationTimeUs/1000);
+                        0);
             }
         });
 
@@ -173,7 +170,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
                 mRtmpPusher.rtmp_pusher_push_audio(data,bufferInfo.size,
-                        bufferInfo.presentationTimeUs/1000);
+                        0);
             }
         });
 

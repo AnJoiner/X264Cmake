@@ -34,7 +34,7 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
 
 
 int rtmp_sender_write_video_frame(unsigned char *data,
-                                  int total,
+                                  int size,
                                   unsigned long dts_us,
                                   unsigned int abs_ts);
 

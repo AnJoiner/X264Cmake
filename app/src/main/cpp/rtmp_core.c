@@ -346,10 +346,10 @@ static uint8_t *get_adts(uint32_t *len, uint8_t **offset, uint8_t *start, uint32
 // @param [in] size       : AACAUDIODATA size
 // @param [in] dts_us     : decode timestamp of frame
 // @param [in] abs_ts     : indicate whether you'd like to use absolute time stamp
-int rtmp_sender_write_audio_frame(uint8_t *data,
+int rtmp_sender_write_audio_frame(unsigned char *data,
                                   int size,
-                                  uint64_t dts_us,
-                                  uint32_t abs_ts) {
+                                  unsigned long dts_us,
+                                  unsigned int abs_ts) {
 
     if (!RTMP_IsConnected(rtmp)){
         return RTMP_ERROR;
@@ -592,10 +592,10 @@ int send_key_frame(int nal_len, uint32_t ts, uint32_t abs_ts, uint8_t *nal) {
 // @param [in] size       : video data size
 // @param [in] dts_us     : decode timestamp of frame
 // @param [in] abs_ts     : indicate whether you'd like to use absolute time stamp
-int rtmp_sender_write_video_frame(uint8_t *data,
+int rtmp_sender_write_video_frame(unsigned char *data,
                                   int size,
-                                  uint64_t dts_us,
-                                  uint32_t abs_ts) {
+                                  unsigned long dts_us,
+                                  unsigned int abs_ts) {
     uint8_t *buf;
     uint8_t *buf_offset;
     int val = 0;
