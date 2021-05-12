@@ -1,11 +1,11 @@
-package com.coder.x264cmake.module.camera.ui;
+package com.coder.x264cmake;
 
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.media.AudioFormat;
+import android.media.MediaCodec;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -13,20 +13,21 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.coder.x264cmake.R;
 import com.coder.x264cmake.annotation.YUVFormat;
 import com.coder.x264cmake.databinding.ActivityCameraBinding;
 import com.coder.x264cmake.jni.RtmpPusher;
 import com.coder.x264cmake.jni.X264Encode;
 import com.coder.x264cmake.module.audio.AudioLoader;
-import com.coder.x264cmake.module.camera.loader.CameraLoader;
+import com.coder.x264cmake.module.camera.CameraLoader;
+import com.coder.x264cmake.module.encode.AudioEncoder;
+import com.coder.x264cmake.module.encode.VideoEncoder;
+import com.coder.x264cmake.module.encode.config.AudioConfig;
+import com.coder.x264cmake.module.encode.config.VideoConfig;
 import com.coder.x264cmake.utils.LogUtils;
 import com.coder.x264cmake.utils.YUV420Utils;
 import com.coder.x264cmake.widgets.CameraPreview;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -45,7 +46,13 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     // 是否正在录制
     private boolean isRecording;
     // h264编码器
-    private X264Encode x264Encode;
+    private VideoEncoder mVideoEncoder;
+    private AudioEncoder mAudioEncoder;
+    // 视频配置
+    private  VideoConfig mVideoConfig;
+    private AudioConfig mAudioConfig;
+
+//    private X264Encode x264Encode;
     // h264视频存储地址
     private String h264Path;
     // aac音频存储地址
@@ -80,7 +87,22 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void initData() {
-        x264Encode = new X264Encode();
+        mVideoConfig = new VideoConfig.Builder()
+                .setWidth(720)
+                .setHeight(1440)
+                .create();
+
+        mAudioConfig = new AudioConfig.Builder()
+                .setChannelCount(CHANNEL_IN_STEREO)
+                .setSampleRate(sampleRate)
+                .setBitRate(bitrate)
+                .create();
+
+        mVideoEncoder = new VideoEncoder();
+        mAudioEncoder = new AudioEncoder();
+
+
+//        x264Encode = new X264Encode();
         mRtmpPusher = new RtmpPusher();
     }
 
@@ -94,11 +116,13 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                     int rotate = mCameraLoader.getRotation();
                     if (mCameraLoader.cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                         if (rotate == 90) {
-                            x264Encode.encode_x264_data(YUV420Utils.rotate90(data, width, height));
+                            mVideoEncoder.pushData(YUV420Utils.rotate90(data, width, height));
+//                            x264Encode.encode_x264_data(YUV420Utils.rotate90(data, width, height));
                         }
                     } else {
                         if (rotate == 90) {
-                            x264Encode.encode_x264_data(YUV420Utils.rotate270(data, width, height));
+                            mVideoEncoder.pushData(YUV420Utils.rotate270(data, width, height));
+//                            x264Encode.encode_x264_data(YUV420Utils.rotate270(data, width, height));
                         }
                     }
 
@@ -118,7 +142,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             public void onAudioRecord(byte[] data, int offsetInBytes, int sizeInBytes) {
                 if (isRecording) {
                     LogUtils.d("fdkaac-encode data size ===>>> " + data.length);
-                    x264Encode.encode_aac_data(data);
+                    mAudioEncoder.pushData(data);
+//                    x264Encode.encode_aac_data(data);
                 }
             }
         });
@@ -130,16 +155,36 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mViewBinding.backBtn.setOnClickListener(this);
         mViewBinding.switchBtn.setOnClickListener(this);
 
-        x264Encode.setOnEncodeListener(new X264Encode.OnEncodeListener() {
+        mVideoEncoder.setOnVideoEncodeCallback(new VideoEncoder.OnVideoEncodeCallback() {
             @Override
-            public void onEncodeH264(byte[] bytes, int size) {
-                mRtmpPusher.rtmp_pusher_push_video(bytes,size,System.currentTimeMillis()/1000);
-            }
-
-            @Override
-            public void onEncodeAAC(byte[] bytes, int size) {
+            public void onVideoEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
+                byte[] data = new byte[bufferInfo.size];
+                byteBuffer.get(data);
+                mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,
+                        0);
             }
         });
+
+        mAudioEncoder.setOnAudioEncodeCallback(new AudioEncoder.OnAudioEncodeCallback() {
+            @Override
+            public void onAudioEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
+                byte[] data = new byte[bufferInfo.size];
+                byteBuffer.get(data);
+                mRtmpPusher.rtmp_pusher_push_audio(data,bufferInfo.size,
+                        0);
+            }
+        });
+
+//        x264Encode.setOnEncodeListener(new X264Encode.OnEncodeListener() {
+//            @Override
+//            public void onEncodeH264(byte[] bytes, int size) {
+//                mRtmpPusher.rtmp_pusher_push_video(bytes,size,System.currentTimeMillis()/1000);
+//            }
+//
+//            @Override
+//            public void onEncodeAAC(byte[] bytes, int size) {
+//            }
+//        });
     }
 
     @Override
@@ -148,16 +193,24 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             isRecording = !isRecording;
             mViewBinding.cameraImage.setSelected(isRecording);
             if (!isRecording) {
-                x264Encode.release_x264();
-                x264Encode.release_aac();
+                mVideoEncoder.stop();
+                mAudioEncoder.stop();
+//                x264Encode.release_x264();
+//                x264Encode.release_aac();
                 mAudioLoader.stopRecord();
                 mRtmpPusher.rtmp_pusher_close();
             } else {
                 mRtmpPusher.rtmp_pusher_open("rtmp://192.168.10.161:8080/toto/live",720,1440);
                 h264Path = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".h264";
-                x264Encode.init_x264(720, 1440, h264Path, YUVFormat.YUV_NV21);
+//                x264Encode.init_x264(720, 1440, h264Path, YUVFormat.YUV_NV21);
+                mVideoEncoder.setup(mVideoConfig);
+                mVideoEncoder.start();
+
                 aacPath = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".aac";
-                x264Encode.init_aac(sampleRate, channel, bitrate, aacPath);
+//                x264Encode.init_aac(sampleRate, channel, bitrate, aacPath);
+                mAudioEncoder.setup(mAudioConfig);
+                mAudioEncoder.start();
+
                 mAudioLoader.startRecord();
             }
         } else if (v.getId() == R.id.back_btn) {

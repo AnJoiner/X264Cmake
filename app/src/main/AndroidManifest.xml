@@ -24,7 +24,7 @@
 
         </activity>
         <!--拍摄-->
-        <activity android:name=".module.camera.ui.CameraActivity"
+        <activity android:name=".CameraActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-package com.coder.x264cmake.module.camera.loader;
+package com.coder.x264cmake.module.camera;
 
 import android.content.Context;
 import android.content.pm.PackageManager;

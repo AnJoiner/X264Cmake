@@ -6,7 +6,7 @@ import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 
-import com.coder.x264cmake.module.camera.loader.CameraLoader;
+import com.coder.x264cmake.module.camera.CameraLoader;
 import com.coder.x264cmake.utils.LogUtils;
 
 import java.io.IOException;

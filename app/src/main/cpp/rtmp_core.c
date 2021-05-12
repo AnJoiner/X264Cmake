@@ -42,13 +42,15 @@ static const AVal av_onPrivateData = AVC("onPrivateData");
 static const AVal av_record = AVC("record");
 
 static void rtmp_android_log_callback(int level, const char *fmt, va_list vl) {
+    char log[1024];
+    vsprintf(log, fmt, vl);
     switch (level) {
-        case RTMP_LOGDEBUG: LOGV(fmt, vl); break;
-        case RTMP_LOGDEBUG2: LOGD(fmt, vl); break;
-        case RTMP_LOGINFO: LOGI(fmt, vl); break;
-        case RTMP_LOGWARNING: LOGW(fmt, vl); break;
-        case RTMP_LOGERROR: LOGE(fmt, vl); break;
-        case RTMP_LOGCRIT: LOGF(fmt, vl); break;
+        case RTMP_LOGDEBUG: LOGV("%s", log); break;
+        case RTMP_LOGDEBUG2: LOGD("%s", log); break;
+        case RTMP_LOGINFO: LOGI("%s", log); break;
+        case RTMP_LOGWARNING: LOGW("%s", log); break;
+        case RTMP_LOGERROR: LOGE("%s", log); break;
+        case RTMP_LOGCRIT: LOGF("%s", log); break;
     }
 }
 
