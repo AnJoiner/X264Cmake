@@ -310,6 +310,37 @@ int rtmp_sender_start_publish(uint32_t video_width, uint32_t video_height) {
     return val;
 }
 
+static uint8_t *get_adts(uint32_t *len, uint8_t **offset, uint8_t *start, uint32_t total)
+{
+    uint8_t *p  =  *offset;
+    uint32_t frame_len_1;
+    uint32_t frame_len_2;
+    uint32_t frame_len_3;
+    uint32_t frame_length;
+
+    if (total < AAC_ADTS_HEADER_SIZE) {
+        return NULL;
+    }
+    if ((p - start) >= total) {
+        return NULL;
+    }
+
+    if (p[0] != 0xff) {
+        return NULL;
+    }
+    if ((p[1] & 0xf0) != 0xf0) {
+        return NULL;
+    }
+    frame_len_1 = p[3] & 0x03;
+    frame_len_2 = p[4];
+    frame_len_3 = (p[5] & 0xe0) >> 5;
+    frame_length = (frame_len_1 << 11) | (frame_len_2 << 3) | frame_len_3;
+    *offset = p + frame_length;
+    *len = frame_length;
+    return p;
+}
+
+
 // @brief send audio frame
 // @param [in] data       : AACAUDIODATA
 // @param [in] size       : AACAUDIODATA size
@@ -324,11 +355,24 @@ int rtmp_sender_write_audio_frame(uint8_t *data,
         return RTMP_ERROR;
     }
     int val = 0;
-    uint32_t audio_ts = (uint32_t) dts_us;
+    uint32_t audio_ts = (uint32_t)dts_us;
+    uint8_t * audio_buf = data;
+    uint32_t audio_total = size;
+    uint8_t *audio_buf_offset = audio_buf;
+    uint8_t *audio_frame;
+    uint32_t adts_len;
     uint32_t offset;
     uint32_t body_len;
     uint32_t output_len;
-    char *output;
+    char *output ;
+
+//    if (data == NULL) {
+//        return RTMP_ERROR;
+//    }
+//    while (1){
+//        offset = 0;
+//        audio_frame = get_adts(&adts_len, &audio_buf_offset, audio_buf, audio_total);
+//    }
 
     //Audio OUTPUT
     offset = 0;
@@ -336,7 +380,6 @@ int rtmp_sender_write_audio_frame(uint8_t *data,
     if (audio_config_ok == false) {
         // first packet is two bytes AudioSpecificConfig
 
-        //rtmp_xiecc->config = gen_config(audio_frame);
         body_len = 2 + 2; //AudioTagHeader + AudioSpecificConfig
         output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
         output = malloc(output_len);
