@@ -1,7 +1,9 @@
 package com.coder.x264cmake.module.encode;
 
+import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaFormat;
 
 import com.coder.x264cmake.module.encode.config.IConfig;
@@ -60,19 +62,27 @@ public class VideoEncoder implements IMediaEncoder {
     private void initEnCoder() {
         // 使用h.264 avc编码
         String mineType = "video/avc";
-        try {
-            mVideoCodec = MediaCodec.createEncoderByType(mineType);
-        } catch (IOException e) {
-            LogUtils.e("Failed to create video encoder!");
-        }
+
         MediaFormat format = MediaFormat.createVideoFormat(mineType,
                 mVideoConfig.width,
                 mVideoConfig.height);
         format.setInteger(KEY_MAX_INPUT_SIZE, 10 * 1024);
         format.setInteger(KEY_BIT_RATE, mVideoConfig.bitrate);
-        format.setInteger(KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
+        format.setInteger(KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar);
         format.setInteger(KEY_FRAME_RATE, mVideoConfig.fps);
         format.setInteger(KEY_I_FRAME_INTERVAL, 1);
+
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                MediaCodecList codecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+                mVideoCodec = MediaCodec.createByCodecName(codecList.findEncoderForFormat(format));
+            }else {
+                mVideoCodec = MediaCodec.createEncoderByType(mineType);
+            }
+        } catch (IOException e) {
+            LogUtils.e("Failed to create video encoder!");
+        }
+
         // 配置状态configured
         mVideoCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         // 建立一个缓存队列
@@ -95,6 +105,9 @@ public class VideoEncoder implements IMediaEncoder {
                 if (mVideoCodec != null) mVideoCodec.start();
                 while (mEncState == EncodeEncState.ENCODING || !mEncodeThread.isInterrupted()) {
                     try {
+//                        if (mQueue.isEmpty() || mQueue.size() == 0){
+//                            return;
+//                        }
                         byte[] data = mQueue.take();
                         encodeData(data);
                     } catch (InterruptedException e) {

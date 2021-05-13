@@ -81,15 +81,32 @@ SET_TARGET_PROPERTIES(
 include_directories(src/main/cpp/libfaac)
 
 add_library(
+        yuv
+        SHARED
+        IMPORTED )
+
+
+SET_TARGET_PROPERTIES(
+        yuv
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/${JNI_LIBS_DIR}/${CMAKE_ANDROID_ARCH_ABI}/libyuv.so
+)
+
+include_directories(src/main/cpp/yuv-include)
+
+add_library(
         h264-encode
         SHARED
         src/main/cpp/h264-encode.cpp
         src/main/cpp/rtmp_pusher.cpp
+        src/main/cpp/yuv_core.cpp
         src/main/cpp/x264_encode.c
         src/main/cpp/safe_queue.c
         src/main/cpp/fdk-aac_encode.c
         src/main/cpp/rtmp_core.c
         src/main/cpp/faac_encode.c
+        src/main/cpp/yuv_convert.c
+        src/main/cpp/yuv_rotate.c
 )
 
 
@@ -123,6 +140,7 @@ target_link_libraries( # Specifies the target library.
                        rtmp
                        fdk-aac
                        faac
+                       yuv
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )

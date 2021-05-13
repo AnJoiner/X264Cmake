@@ -2,6 +2,7 @@ package com.coder.x264cmake;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.coder.x264cmake.databinding.ActivityCameraBinding;
 import com.coder.x264cmake.jni.RtmpPusher;
+import com.coder.x264cmake.jni.YuvCore;
 import com.coder.x264cmake.module.audio.AudioLoader;
 import com.coder.x264cmake.module.camera.CameraLoader;
 import com.coder.x264cmake.module.encode.AudioEncoder;
@@ -26,7 +28,9 @@ import com.coder.x264cmake.widgets.CameraPreview;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import static android.media.AudioFormat.CHANNEL_IN_STEREO;
 import static android.media.AudioFormat.ENCODING_PCM_16BIT;
@@ -48,6 +52,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     // 视频配置
     private  VideoConfig mVideoConfig;
     private AudioConfig mAudioConfig;
+    // yuv处理
+    private YuvCore mYuvCore;
 
 //    private X264Encode x264Encode;
     // h264视频存储地址
@@ -59,8 +65,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private final int channel = 2;
     private final int bitrate = 96000;
 
-
     private RtmpPusher mRtmpPusher;
+
+    private byte[] mBytes;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, CameraActivity.class);
@@ -84,6 +91,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void initData() {
+
         mVideoConfig = new VideoConfig.Builder()
                 .setWidth(720)
                 .setHeight(1440)
@@ -98,6 +106,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mVideoEncoder = new VideoEncoder();
         mAudioEncoder = new AudioEncoder();
 
+        mYuvCore = new YuvCore();
 
 //        x264Encode = new X264Encode();
         mRtmpPusher = new RtmpPusher();
@@ -107,22 +116,22 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mCameraLoader = new CameraLoader();
         mCameraLoader.setOnCameraPreCallback(new CameraLoader.OnCameraPreCallback() {
             @Override
-            public void onCameraPreFrame(byte[] data, int width, int height) {
+            public void onCameraPreFrame(byte[] src, int width, int height) {
                 if (isRecording) {
-                    LogUtils.d("h264-encode data size ===>>> " + data.length);
-                    int rotate = mCameraLoader.getRotation();
+                    if (src == null) return;
+                    LogUtils.d("h264-encode data size ===>>> " + src.length);
+//                    byte[] dst = new byte[src.length];
+                    mYuvCore.nv21ToI420(src,mBytes,width,height);
+//                    byte[] data = new byte[dst.length];
                     if (mCameraLoader.cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) {
-                        if (rotate == 90) {
-                            mVideoEncoder.pushData(YUV420Utils.rotate90(data, width, height));
-//                            x264Encode.encode_x264_data(YUV420Utils.rotate90(data, width, height));
-                        }
-                    } else {
-                        if (rotate == 90) {
-                            mVideoEncoder.pushData(YUV420Utils.rotate270(data, width, height));
-//                            x264Encode.encode_x264_data(YUV420Utils.rotate270(data, width, height));
-                        }
-                    }
+                        mYuvCore.rotateI420(mBytes,src,width,height,90);
 
+                        //                        x264Encode.encode_x264_data(YUV420Utils.rotate90(data, width, height));
+                    } else {
+                        mYuvCore.rotateI420(mBytes,src,width,height,270);
+                        //                            x264Encode.encode_x264_data(YUV420Utils.rotate270(data, width, height));
+                    }
+                    mVideoEncoder.pushData(src);
                 }
             }
         });
@@ -201,6 +210,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 //                x264Encode.init_x264(720, 1440, h264Path, YUVFormat.YUV_NV21);
                 mVideoEncoder.setup(mVideoConfig);
                 mVideoEncoder.start();
+
+                if (mBytes == null){
+                    int size = 720 * 1440 * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8;
+                    mBytes = new byte[size];
+                }
 
                 aacPath = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".aac";
 //                x264Encode.init_aac(sampleRate, channel, bitrate, aacPath);

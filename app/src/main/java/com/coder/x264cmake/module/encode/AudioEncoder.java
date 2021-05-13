@@ -102,9 +102,9 @@ public class AudioEncoder implements IMediaEncoder {
                 if (mAudioCodec != null) mAudioCodec.start();
                 while (mEncState == EncodeEncState.ENCODING || !mEncodeThread.isInterrupted()) {
                     try {
-                        if (mQueue.isEmpty() || mQueue.size() == 0){
-                            continue;
-                        }
+//                        if (mQueue.isEmpty() || mQueue.size() == 0){
+//                            continue;
+//                        }
                         byte[] data = mQueue.take();
                         encodeData(data);
                     } catch (InterruptedException e) {
