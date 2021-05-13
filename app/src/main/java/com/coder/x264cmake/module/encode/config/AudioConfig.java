@@ -64,6 +64,7 @@ public class AudioConfig implements IConfig {
             config.channelCount = channelCount;
             config.sampleRate = sampleRate;
             config.outputFormat = outputFormat;
+            config.bitRate = bitRate;
             return config;
         }
     }

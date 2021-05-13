@@ -68,7 +68,7 @@ public class VideoEncoder implements IMediaEncoder {
         MediaFormat format = MediaFormat.createVideoFormat(mineType,
                 mVideoConfig.width,
                 mVideoConfig.height);
-        format.setInteger(KEY_MAX_INPUT_SIZE, 5 * 10 * 1024);
+        format.setInteger(KEY_MAX_INPUT_SIZE, 10 * 1024);
         format.setInteger(KEY_BIT_RATE, mVideoConfig.bitrate);
         format.setInteger(KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
         format.setInteger(KEY_FRAME_RATE, mVideoConfig.fps);
@@ -117,11 +117,12 @@ public class VideoEncoder implements IMediaEncoder {
     @Override
     public void pushData(byte[] data) {
         if (mState == EncodeState.UNINITIALIZED) {
-            LogUtils.e("Failed to push data. Please execute 'setup' method first!");
+            LogUtils.w("Failed to push data. Please execute 'setup' method first!");
             return;
         }
         if (mEncState == EncodeEncState.STOPPED) {
-            LogUtils.e("Failed to push data. Please execute 'start' method first!");
+            LogUtils.w("Failed to push data. Please execute 'start' method first!");
+            return;
         }
         try {
             mQueue.put(data);

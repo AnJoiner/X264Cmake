@@ -70,13 +70,13 @@ public class AudioEncoder implements IMediaEncoder {
                 mAudioConfig.channelCount);
 
         int channelConfig = AudioFormat.CHANNEL_IN_STEREO;
-        if (mAudioConfig.channelCount == 1){
+        if (mAudioConfig.channelCount == 1) {
             channelConfig = AudioFormat.CHANNEL_IN_MONO;
         }
         int bufferSizeInBytes = AudioRecord.getMinBufferSize(mAudioConfig.sampleRate,
                 channelConfig, mAudioConfig.audioFormat);
 
-        format.setInteger(KEY_MAX_INPUT_SIZE, bufferSizeInBytes *2);
+        format.setInteger(KEY_MAX_INPUT_SIZE, 10 * 1024);
         // 设置ACC规格为LC
         format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
         // 设置比特率
@@ -102,6 +102,9 @@ public class AudioEncoder implements IMediaEncoder {
                 if (mAudioCodec != null) mAudioCodec.start();
                 while (mEncState == EncodeEncState.ENCODING || !mEncodeThread.isInterrupted()) {
                     try {
+                        if (mQueue.isEmpty() || mQueue.size() == 0){
+                            continue;
+                        }
                         byte[] data = mQueue.take();
                         encodeData(data);
                     } catch (InterruptedException e) {
@@ -139,7 +142,9 @@ public class AudioEncoder implements IMediaEncoder {
 
     private void encodeData(byte[] data) {
         // 获取缓存id
+        LogUtils.d("Audio Encoder ===>>> start to dequeue input buffer");
         int inputBufferId = mAudioCodec.dequeueInputBuffer(-1);
+        LogUtils.d("Audio Encoder ===>>> dequeue input buffer");
         if (inputBufferId >= 0) {
             ByteBuffer[] inputBuffers = mAudioCodec.getInputBuffers();
             ByteBuffer inputBuffer = inputBuffers[inputBufferId];
@@ -159,7 +164,9 @@ public class AudioEncoder implements IMediaEncoder {
                 addADTS(outputBuffer, bufferInfo);
             } else {
                 if (mOnAudioEncodeCallback != null) {
-                    mOnAudioEncodeCallback.onAudioEncode(outputBuffer, bufferInfo);
+                    byte[] bytes = new byte[bufferInfo.size];
+                    outputBuffer.get(bytes);
+                    mOnAudioEncodeCallback.onAudioEncode(bytes, bufferInfo);
                 }
             }
             // 释放输出缓冲区
@@ -186,7 +193,7 @@ public class AudioEncoder implements IMediaEncoder {
 
         if (mOnAudioEncodeCallback != null) {
             bufferInfo.size = bufferSize + 7;
-            mOnAudioEncodeCallback.onAudioEncode(ByteBuffer.wrap(data), bufferInfo);
+            mOnAudioEncodeCallback.onAudioEncode(data, bufferInfo);
         }
     }
 
@@ -227,7 +234,7 @@ public class AudioEncoder implements IMediaEncoder {
     }
 
     public interface OnAudioEncodeCallback {
-        void onAudioEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo);
+        void onAudioEncode(byte[] bytes, MediaCodec.BufferInfo bufferInfo);
     }
 
 }

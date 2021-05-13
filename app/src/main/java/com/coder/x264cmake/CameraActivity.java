@@ -138,7 +138,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onAudioRecord(byte[] data, int offsetInBytes, int sizeInBytes) {
                 if (isRecording) {
-                    LogUtils.d("fdkaac-encode data size ===>>> " + data.length);
                     mAudioEncoder.pushData(data);
 //                    x264Encode.encode_aac_data(data);
                 }
@@ -159,18 +158,16 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
                 mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,
-                        0);
+                        bufferInfo.presentationTimeUs/1000000);
             }
         });
 
         mAudioEncoder.setOnAudioEncodeCallback(new AudioEncoder.OnAudioEncodeCallback() {
             @Override
-            public void onAudioEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
+            public void onAudioEncode(byte[] bytes, MediaCodec.BufferInfo bufferInfo) {
                 LogUtils.d("Timestamp===>>>> Audio:"+bufferInfo.presentationTimeUs/1000);
-                byte[] data = new byte[bufferInfo.size];
-                byteBuffer.get(data);
-                mRtmpPusher.rtmp_pusher_push_audio(data,bufferInfo.size,
-                        0);
+                mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size,
+                        bufferInfo.presentationTimeUs/1000000);
             }
         });
 

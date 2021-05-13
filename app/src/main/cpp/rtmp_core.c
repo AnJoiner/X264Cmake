@@ -406,7 +406,6 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         output[offset++] = data[1]; //((rtmp_xiecc->config.sample_frequency_index & 0x01) << 7) \
                            //| (rtmp_xiecc->config.channel_configuration << 3) ;
         //no need to set pre_tag_size
-        LOGE("AudioSpecificConfig: %c, %c",data[0],data[1]);
 
         uint32_t fff = body_len + FLV_TAG_HEAD_LEN;
         output[offset++] = (uint8_t) (fff >> 24); //data len
@@ -693,7 +692,6 @@ int rtmp_sender_write_video_frame(unsigned char *data,
 
         if ((nal[0] & 0x1f) == 0x05)
         {
-            LOGI("Pushing key frame ...");
             body_len = nal_len + 5 + 4; //flv VideoTagHeader +  NALU length
             output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
             output = malloc(output_len);if (!output) {
@@ -753,7 +751,6 @@ int rtmp_sender_write_video_frame(unsigned char *data,
 
         if ((nal[0] & 0x1f) == 0x01)
         {
-            LOGI("Pushing not key frame ...");
             body_len = nal_len + 5 + 4; //flv VideoTagHeader +  NALU length
             output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
             output = malloc(output_len);if (!output) {
