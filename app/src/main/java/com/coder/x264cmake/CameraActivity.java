@@ -165,7 +165,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mVideoEncoder.setOnVideoEncodeCallback(new VideoEncoder.OnVideoEncodeCallback() {
             @Override
             public void onVideoEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-                long timestamp = System.nanoTime() - presentationTimeUs;
+                long timestamp = bufferInfo.presentationTimeUs;
                 LogUtils.d("rtmp-core===>>>> Video:"+timestamp/1000);
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
@@ -176,7 +176,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mAudioEncoder.setOnAudioEncodeCallback(new AudioEncoder.OnAudioEncodeCallback() {
             @Override
             public void onAudioEncode(byte[] bytes, MediaCodec.BufferInfo bufferInfo) {
-                long timestamp = System.nanoTime() - presentationTimeUs;
+                long timestamp = bufferInfo.presentationTimeUs;
                 LogUtils.d("rtmp-core===>>>> Audio:"+timestamp/1000);
                 mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size, timestamp/1000);
             }

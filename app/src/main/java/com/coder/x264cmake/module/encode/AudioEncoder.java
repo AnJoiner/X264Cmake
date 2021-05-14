@@ -33,7 +33,8 @@ public class AudioEncoder extends BaseMediaEncoder {
     LinkedBlockingQueue<byte[]> mQueue;
     // 编码线程
     private Thread mEncodeThread;
-
+    // pts
+    protected long presentationTimeUs = 0;
     private OnAudioEncodeCallback mOnAudioEncodeCallback;
 
     public void setOnAudioEncodeCallback(OnAudioEncodeCallback onAudioEncodeCallback) {
@@ -100,10 +101,7 @@ public class AudioEncoder extends BaseMediaEncoder {
         mEncodeThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                if (!isPresentationTimeUs){
-                    presentationTimeUs = System.nanoTime();
-                    isPresentationTimeUs = true;
-                }
+                presentationTimeUs = System.nanoTime();
                 if (mAudioCodec != null) mAudioCodec.start();
                 while (mEncState == EncodeEncState.ENCODING || !mEncodeThread.isInterrupted()) {
                     try {

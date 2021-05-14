@@ -35,7 +35,8 @@ public class VideoEncoder extends BaseMediaEncoder {
     LinkedBlockingQueue<byte[]> mQueue;
     // 编码线程
     private Thread mEncodeThread;
-
+    // pts
+    protected long presentationTimeUs = 0;
     // 数据回调
     private OnVideoEncodeCallback mOnVideoEncodeCallback;
     // 编码的planar - i420
@@ -100,10 +101,7 @@ public class VideoEncoder extends BaseMediaEncoder {
         mEncodeThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                if (!isPresentationTimeUs){
-                    presentationTimeUs = System.nanoTime();
-                    isPresentationTimeUs = true;
-                }
+                presentationTimeUs = System.nanoTime();
                 if (mVideoCodec != null) mVideoCodec.start();
                 while (mEncState == EncodeEncState.ENCODING || !mEncodeThread.isInterrupted()) {
                     try {
@@ -153,7 +151,8 @@ public class VideoEncoder extends BaseMediaEncoder {
             // 放入数据
             inputBuffer.put(data);
             // 提交到编码队列
-            mVideoCodec.queueInputBuffer(inputBufferId, 0, data.length, System.nanoTime() - presentationTimeUs, 0);
+            mVideoCodec.queueInputBuffer(inputBufferId, 0, data.length,
+                    System.nanoTime() - presentationTimeUs, 0);
         }
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
         int outputBufferId = mVideoCodec.dequeueOutputBuffer(bufferInfo, 0);

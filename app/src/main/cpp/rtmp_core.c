@@ -71,6 +71,8 @@ RTMP *rtmp;
 bool video_config_ok = false;
 bool audio_config_ok = false;
 
+uint32_t start_time;
+
 #define AAC_ADTS_HEADER_SIZE 7
 #define FLV_TAG_HEAD_LEN 11
 #define FLV_PRE_TAG_LEN 4
@@ -216,6 +218,7 @@ int rtmp_pusher_open(char *url, uint32_t video_width, uint32_t video_height) {
         memcpy(send_buffer + offset, buffer, body_len);
 
         LOGI("Starting push ...");
+        start_time = RTMP_GetTime();
         return RTMP_Write(rtmp, send_buffer, output_len);
     }
     return RTMP_ERROR;
@@ -321,35 +324,6 @@ int rtmp_sender_start_publish(uint32_t video_width, uint32_t video_height) {
     return val;
 }
 
-static uint8_t *get_adts(uint32_t *len, uint8_t **offset, uint8_t *start, uint32_t total) {
-    uint8_t *p = *offset;
-    uint32_t frame_len_1;
-    uint32_t frame_len_2;
-    uint32_t frame_len_3;
-    uint32_t frame_length;
-
-    if (total < AAC_ADTS_HEADER_SIZE) {
-        return NULL;
-    }
-    if ((p - start) >= total) {
-        return NULL;
-    }
-
-    if (p[0] != 0xff) {
-        return NULL;
-    }
-    if ((p[1] & 0xf0) != 0xf0) {
-        return NULL;
-    }
-    frame_len_1 = p[3] & 0x03;
-    frame_len_2 = p[4];
-    frame_len_3 = (p[5] & 0xe0) >> 5;
-    frame_length = (frame_len_1 << 11) | (frame_len_2 << 3) | frame_len_3;
-    *offset = p + frame_length;
-    *len = frame_length;
-    return p;
-}
-
 
 // @brief send audio frame
 // @param [in] data       : AACAUDIODATA
@@ -365,12 +339,7 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         return RTMP_ERROR;
     }
     int val = 0;
-    uint32_t audio_ts = (uint32_t) dts_us;
-    uint8_t *audio_buf = data;
-    uint32_t audio_total = size;
-    uint8_t *audio_buf_offset = audio_buf;
-    uint8_t *audio_frame;
-    uint32_t adts_len;
+    uint32_t audio_ts = (RTMP_GetTime() - start_time)/1000;
     uint32_t offset;
     uint32_t body_len;
     uint32_t output_len;
@@ -379,10 +348,8 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
     if (data == NULL) {
         return RTMP_ERROR;
     }
-    offset = 0;
-//        audio_frame = get_adts(&adts_len, &audio_buf_offset, audio_buf, audio_total);
-//        if (audio_frame == NULL) break;
 
+    offset = 0;
     if (audio_config_ok == false) {
 
         body_len = 2 + 2; //AudioTagHeader + AudioSpecificConfig
@@ -394,10 +361,10 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         output[offset++] = (uint8_t) (body_len >> 16); //data len
         output[offset++] = (uint8_t) (body_len >> 8); //data len
         output[offset++] = (uint8_t) (body_len); //data len
-        output[offset++] = (uint8_t) (audio_ts >> 16); //time stamp
-        output[offset++] = (uint8_t) (audio_ts >> 8); //time stamp
-        output[offset++] = (uint8_t) (audio_ts); //time stamp
-        output[offset++] = (uint8_t) (audio_ts >> 24); //time stamp
+        output[offset++] = 0x00; //time stamp
+        output[offset++] = 0x00; //time stamp
+        output[offset++] = 0x00; //time stamp
+        output[offset++] = 0x00; //time stamp
         output[offset++] = abs_ts; //stream id 0
         output[offset++] = 0x00; //stream id 0
         output[offset++] = 0x00; //stream id 0
@@ -409,12 +376,14 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         //flv VideoTagBody --AudioSpecificConfig
         output[offset++] = data[0];
         output[offset++] = data[1];
+//        memcpy(&output[13], output, size);
 
         val = RTMP_Write(rtmp, output, output_len);
         free(output);
 
         audio_config_ok = true;
     } else {
+        uint32_t pts = RTMP_GetTime() - start_time;
         body_len = 2 + size; // remove adts header + AudioTagHeader
         output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
         output = malloc(output_len);
@@ -523,57 +492,6 @@ static uint8_t *get_nal(uint32_t *len, uint8_t **offset, uint8_t *start, uint32_
     return q;
 }
 
-int send_key_frame(int nal_len, uint32_t ts, uint32_t abs_ts, uint8_t *nal) {
-    int offset = 0;
-    int body_len = nal_len + 5 + 4; //flv VideoTagHeader +  NALU length
-    int output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
-    char *output = malloc(output_len);
-    if (!output) {
-        LOGE("Memory is not allocated...");
-    }
-    // flv tag header
-    output[offset++] = 0x09; //tagtype video
-    output[offset++] = (uint8_t) (body_len >> 16); //data len
-    output[offset++] = (uint8_t) (body_len >> 8); //data len
-    output[offset++] = (uint8_t) (body_len); //data len
-    output[offset++] = (uint8_t) (ts >> 16); //time stamp
-    output[offset++] = (uint8_t) (ts >> 8); //time stamp
-    output[offset++] = (uint8_t) (ts); //time stamp
-    output[offset++] = (uint8_t) (ts >> 24); //time stamp
-    output[offset++] = abs_ts; //stream id 0
-    output[offset++] = 0x00; //stream id 0
-    output[offset++] = 0x00; //stream id 0
-
-    //flv VideoTagHeader
-    output[offset++] = 0x17; //key frame, AVC
-    output[offset++] = 0x01; //avc NALU unit
-    output[offset++] = 0x00; //composit time ??????????
-    output[offset++] = 0x00; // composit time
-    output[offset++] = 0x00; //composit time
-
-    output[offset++] = (uint8_t) (nal_len >> 24); //nal length
-    output[offset++] = (uint8_t) (nal_len >> 16); //nal length
-    output[offset++] = (uint8_t) (nal_len >> 8); //nal length
-    output[offset++] = (uint8_t) (nal_len); //nal length
-    memcpy(output + offset, nal, nal_len);
-
-    //no need set pre_tag_size ,RTMP NO NEED
-
-    offset += nal_len;
-    uint32_t fff = body_len + FLV_TAG_HEAD_LEN;
-    output[offset++] = (uint8_t) (fff >> 24); //data len
-    output[offset++] = (uint8_t) (fff >> 16); //data len
-    output[offset++] = (uint8_t) (fff >> 8); //data len
-    output[offset++] = (uint8_t) (fff); //data len
-
-//    if (g_file_handle) {
-//        fwrite(output, output_len, 1, g_file_handle);
-//    }
-    int val = RTMP_Write(rtmp, output, output_len);
-    //RTMP Send out
-    free(output);
-    return val;
-}
 
 // @brief send video frame, now only H264 supported
 // @param [in] rtmp_sender handler
@@ -601,7 +519,7 @@ int rtmp_sender_write_video_frame(unsigned char *data,
     buf = data;
     buf_offset = data;
     total = size;
-    ts = (uint32_t) dts_us;
+    ts = (RTMP_GetTime() - start_time)/1000;
 
     if (data == NULL) {
         LOGE("Write video data is NULL!");
