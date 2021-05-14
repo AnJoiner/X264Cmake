@@ -166,10 +166,10 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onVideoEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
                 long timestamp = System.nanoTime() - presentationTimeUs;
-                LogUtils.d("rtmp-core===>>>> Video:"+timestamp);
+                LogUtils.d("rtmp-core===>>>> Video:"+timestamp/1000);
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
-                mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,bufferInfo.presentationTimeUs/1000000);
+                mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,timestamp/1000);
             }
         });
 
@@ -177,8 +177,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onAudioEncode(byte[] bytes, MediaCodec.BufferInfo bufferInfo) {
                 long timestamp = System.nanoTime() - presentationTimeUs;
-                LogUtils.d("rtmp-core===>>>> Audio:"+timestamp);
-                mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size, bufferInfo.presentationTimeUs/1000000);
+                LogUtils.d("rtmp-core===>>>> Audio:"+timestamp/1000);
+                mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size, timestamp/1000);
             }
         });
 

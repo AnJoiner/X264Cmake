@@ -145,7 +145,7 @@ public class AudioEncoder extends BaseMediaEncoder {
         }
     }
 
-    private void encodeData(byte[] data) {
+    synchronized private void encodeData(byte[] data) {
         // 获取缓存id
 //        LogUtils.d("Audio Encoder ===>>> start to dequeue input buffer");
         int inputBufferId = mAudioCodec.dequeueInputBuffer(-1);
@@ -162,7 +162,7 @@ public class AudioEncoder extends BaseMediaEncoder {
         }
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
         int outputBufferId = mAudioCodec.dequeueOutputBuffer(bufferInfo, 0);
-        if (outputBufferId >= 0) {
+        while (outputBufferId >= 0) {
             ByteBuffer[] outputBuffers = mAudioCodec.getOutputBuffers();
             ByteBuffer outputBuffer = outputBuffers[outputBufferId];
             if (mAudioConfig.outputFormat == 1) {
@@ -176,6 +176,7 @@ public class AudioEncoder extends BaseMediaEncoder {
             }
             // 释放输出缓冲区
             mAudioCodec.releaseOutputBuffer(outputBufferId, false);
+            outputBufferId = mAudioCodec.dequeueOutputBuffer(bufferInfo, 0);
         }
     }
 

@@ -45,12 +45,24 @@ static void rtmp_android_log_callback(int level, const char *fmt, va_list vl) {
     char log[1024];
     vsprintf(log, fmt, vl);
     switch (level) {
-        case RTMP_LOGDEBUG: LOGV("%s", log); break;
-        case RTMP_LOGDEBUG2: LOGD("%s", log); break;
-        case RTMP_LOGINFO: LOGI("%s", log); break;
-        case RTMP_LOGWARNING: LOGW("%s", log); break;
-        case RTMP_LOGERROR: LOGE("%s", log); break;
-        case RTMP_LOGCRIT: LOGF("%s", log); break;
+        case RTMP_LOGDEBUG:
+            LOGV("%s", log);
+            break;
+        case RTMP_LOGDEBUG2:
+            LOGD("%s", log);
+            break;
+        case RTMP_LOGINFO:
+            LOGI("%s", log);
+            break;
+        case RTMP_LOGWARNING:
+            LOGW("%s", log);
+            break;
+        case RTMP_LOGERROR:
+            LOGE("%s", log);
+            break;
+        case RTMP_LOGCRIT:
+            LOGF("%s", log);
+            break;
     }
 }
 
@@ -60,7 +72,6 @@ bool video_config_ok = false;
 bool audio_config_ok = false;
 
 #define AAC_ADTS_HEADER_SIZE 7
-#define FLV_HEADER 9
 #define FLV_TAG_HEAD_LEN 11
 #define FLV_PRE_TAG_LEN 4
 
@@ -310,9 +321,8 @@ int rtmp_sender_start_publish(uint32_t video_width, uint32_t video_height) {
     return val;
 }
 
-static uint8_t *get_adts(uint32_t *len, uint8_t **offset, uint8_t *start, uint32_t total)
-{
-    uint8_t *p  =  *offset;
+static uint8_t *get_adts(uint32_t *len, uint8_t **offset, uint8_t *start, uint32_t total) {
+    uint8_t *p = *offset;
     uint32_t frame_len_1;
     uint32_t frame_len_2;
     uint32_t frame_len_3;
@@ -351,12 +361,12 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
                                   unsigned long dts_us,
                                   unsigned int abs_ts) {
 
-    if (!RTMP_IsConnected(rtmp)){
+    if (!RTMP_IsConnected(rtmp)) {
         return RTMP_ERROR;
     }
     int val = 0;
-    uint32_t audio_ts = (uint32_t)dts_us;
-    uint8_t * audio_buf = data;
+    uint32_t audio_ts = (uint32_t) dts_us;
+    uint8_t *audio_buf = data;
     uint32_t audio_total = size;
     uint8_t *audio_buf_offset = audio_buf;
     uint8_t *audio_frame;
@@ -364,27 +374,23 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
     uint32_t offset;
     uint32_t body_len;
     uint32_t output_len;
-    char *output ;
+    char *output;
 
-//    if (data == NULL) {
-//        return RTMP_ERROR;
-//    }
-//    while (1){
-//        offset = 0;
-//        audio_frame = get_adts(&adts_len, &audio_buf_offset, audio_buf, audio_total);
-//    }
-
-    //Audio OUTPUT
+    if (data == NULL) {
+        return RTMP_ERROR;
+    }
     offset = 0;
+//        audio_frame = get_adts(&adts_len, &audio_buf_offset, audio_buf, audio_total);
+//        if (audio_frame == NULL) break;
 
     if (audio_config_ok == false) {
-        // first packet is two bytes AudioSpecificConfig
 
         body_len = 2 + 2; //AudioTagHeader + AudioSpecificConfig
         output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
         output = malloc(output_len);
+
         // flv tag header
-        output[offset++] = 0x08; //tagtype audio
+        output[offset++] = 0x08; //tagtype video
         output[offset++] = (uint8_t) (body_len >> 16); //data len
         output[offset++] = (uint8_t) (body_len >> 8); //data len
         output[offset++] = (uint8_t) (body_len); //data len
@@ -401,33 +407,19 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         output[offset++] = 0x00; //aac sequence header
 
         //flv VideoTagBody --AudioSpecificConfig
-        //    uint8_t audio_object_type = rtmp_xiecc->config.audio_object_type;
-        output[offset++] = data[0]; //(audio_object_type << 3)|(rtmp_xiecc->config.sample_frequency_index >> 1);
-        output[offset++] = data[1]; //((rtmp_xiecc->config.sample_frequency_index & 0x01) << 7) \
-                           //| (rtmp_xiecc->config.channel_configuration << 3) ;
-        //no need to set pre_tag_size
+        output[offset++] = data[0];
+        output[offset++] = data[1];
 
-        uint32_t fff = body_len + FLV_TAG_HEAD_LEN;
-        output[offset++] = (uint8_t) (fff >> 24); //data len
-        output[offset++] = (uint8_t) (fff >> 16); //data len
-        output[offset++] = (uint8_t) (fff >> 8); //data len
-        output[offset++] = (uint8_t) (fff); //data len
-
-//        if (g_file_handle) {
-//            fwrite(output, output_len, 1, g_file_handle);
-//        }
         val = RTMP_Write(rtmp, output, output_len);
         free(output);
-        //rtmp_xiecc->audio_config_ok = 1;
+
         audio_config_ok = true;
     } else {
-
-        body_len = 2 +
-                   size; //aac header + raw data size // adts_len - AAC_ADTS_HEADER_SIZE; // audito tag header + adts_len - remove adts header + AudioTagHeader
+        body_len = 2 + size; // remove adts header + AudioTagHeader
         output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
         output = malloc(output_len);
         // flv tag header
-        output[offset++] = 0x08; //tagtype audio
+        output[offset++] = 0x08; //tagtype video
         output[offset++] = (uint8_t) (body_len >> 16); //data len
         output[offset++] = (uint8_t) (body_len >> 8); //data len
         output[offset++] = (uint8_t) (body_len); //data len
@@ -444,25 +436,22 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         output[offset++] = 0x01; //aac raw data
 
         //flv VideoTagBody --raw aac data
-        memcpy(output + offset, data, size); // data + AAC_ADTS_HEADER_SIZE -> data,
-        // (adts_len - AAC_ADTS_HEADER_SIZE) -> size
+        memcpy(output + offset, data, size); //H264 sequence parameter set
 
-
+        /*
         //previous tag size
         uint32_t fff = body_len + FLV_TAG_HEAD_LEN;
-        offset += size; // (adts_len - AAC_ADTS_HEADER_SIZE);
-        output[offset++] = (uint8_t) (fff >> 24); //data len
-        output[offset++] = (uint8_t) (fff >> 16); //data len
-        output[offset++] = (uint8_t) (fff >> 8); //data len
-        output[offset++] = (uint8_t) (fff); //data len
+        offset += (adts_len - AAC_ADTS_HEADER_SIZE);
+        output[offset++] = (uint8_t)(fff >> 24); //data len
+        output[offset++] = (uint8_t)(fff >> 16); //data len
+        output[offset++] = (uint8_t)(fff >> 8); //data len
+        output[offset++] = (uint8_t)(fff); //data len
+        */
 
-//        if (g_file_handle) {
-//            fwrite(output, output_len, 1, g_file_handle);
-//        }
         val = RTMP_Write(rtmp, output, output_len);
         free(output);
     }
-    return val;
+    return (val > 0) ? RTMP_OK : RTMP_ERROR;
 }
 
 static uint32_t find_start_code(uint8_t *buf, uint32_t zeros_in_startcode) {
@@ -614,19 +603,19 @@ int rtmp_sender_write_video_frame(unsigned char *data,
     total = size;
     ts = (uint32_t) dts_us;
 
-    if (data == NULL){
+    if (data == NULL) {
         LOGE("Write video data is NULL!");
         return RTMP_ERROR;
     }
 
-    while (1){
+    while (1) {
         offset = 0;
         nal = get_nal(&nal_len, &buf_offset, buf, total);
 
         if (nal == NULL) break;
         if (nal[0] == 0x67) {
             LOGI("Pushing SPS and PPS ...");
-            if (video_config_ok == true){
+            if (video_config_ok == true) {
                 LOGD("video config is already set");
                 //only send video seq set once;
                 continue;
@@ -646,13 +635,13 @@ int rtmp_sender_write_video_frame(unsigned char *data,
 
             // flv tag header
             output[offset++] = 0x09; //tagtype video
-            output[offset++] = (uint8_t)(body_len >> 16); //data len
-            output[offset++] = (uint8_t)(body_len >> 8); //data len
-            output[offset++] = (uint8_t)(body_len); //data len
-            output[offset++] = (uint8_t)(ts >> 16); //time stamp
-            output[offset++] = (uint8_t)(ts >> 8); //time stamp
-            output[offset++] = (uint8_t)(ts); //time stamp
-            output[offset++] = (uint8_t)(ts >> 24); //time stamp
+            output[offset++] = (uint8_t) (body_len >> 16); //data len
+            output[offset++] = (uint8_t) (body_len >> 8); //data len
+            output[offset++] = (uint8_t) (body_len); //data len
+            output[offset++] = (uint8_t) (ts >> 16); //time stamp
+            output[offset++] = (uint8_t) (ts >> 8); //time stamp
+            output[offset++] = (uint8_t) (ts); //time stamp
+            output[offset++] = (uint8_t) (ts >> 24); //time stamp
             output[offset++] = abs_ts; //stream id 0
             output[offset++] = 0x00; //stream id 0
             output[offset++] = 0x00; //stream id 0
@@ -671,13 +660,14 @@ int rtmp_sender_write_video_frame(unsigned char *data,
             output[offset++] = nal[3]; //avclevelindication
             output[offset++] = 0xff; //reserved + lengthsizeminusone
             output[offset++] = 0xe1; //numofsequenceset
-            output[offset++] = (uint8_t)(nal_len >> 8); //sequence parameter set length high 8 bits
-            output[offset++] = (uint8_t)(nal_len); //sequence parameter set  length low 8 bits
+            output[offset++] = (uint8_t) (nal_len >> 8); //sequence parameter set length high 8 bits
+            output[offset++] = (uint8_t) (nal_len); //sequence parameter set  length low 8 bits
             memcpy(output + offset, nal, nal_len); //H264 sequence parameter set
             offset += nal_len;
             output[offset++] = 0x01; //numofpictureset
-            output[offset++] = (uint8_t)(nal_len_n >> 8); //picture parameter set length high 8 bits
-            output[offset++] = (uint8_t)(nal_len_n); //picture parameter set length low 8 bits
+            output[offset++] = (uint8_t) (nal_len_n
+                    >> 8); //picture parameter set length high 8 bits
+            output[offset++] = (uint8_t) (nal_len_n); //picture parameter set length low 8 bits
             memcpy(output + offset, nal_n, nal_len_n); //H264 picture parameter set
 
             //no need set pre_tag_size ,RTMP NO NEED
@@ -690,22 +680,22 @@ int rtmp_sender_write_video_frame(unsigned char *data,
             continue;
         }
 
-        if ((nal[0] & 0x1f) == 0x05)
-        {
+        if ((nal[0] & 0x1f) == 0x05) {
             body_len = nal_len + 5 + 4; //flv VideoTagHeader +  NALU length
             output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
-            output = malloc(output_len);if (!output) {
+            output = malloc(output_len);
+            if (!output) {
                 LOGE("Memory is not allocated...");
             }
             // flv tag header
             output[offset++] = 0x09; //tagtype video
-            output[offset++] = (uint8_t)(body_len >> 16); //data len
-            output[offset++] = (uint8_t)(body_len >> 8); //data len
-            output[offset++] = (uint8_t)(body_len); //data len
-            output[offset++] = (uint8_t)(ts >> 16); //time stamp
-            output[offset++] = (uint8_t)(ts >> 8); //time stamp
-            output[offset++] = (uint8_t)(ts); //time stamp
-            output[offset++] = (uint8_t)(ts >> 24); //time stamp
+            output[offset++] = (uint8_t) (body_len >> 16); //data len
+            output[offset++] = (uint8_t) (body_len >> 8); //data len
+            output[offset++] = (uint8_t) (body_len); //data len
+            output[offset++] = (uint8_t) (ts >> 16); //time stamp
+            output[offset++] = (uint8_t) (ts >> 8); //time stamp
+            output[offset++] = (uint8_t) (ts); //time stamp
+            output[offset++] = (uint8_t) (ts >> 24); //time stamp
             output[offset++] = abs_ts; //stream id 0
             output[offset++] = 0x00; //stream id 0
             output[offset++] = 0x00; //stream id 0
@@ -717,10 +707,10 @@ int rtmp_sender_write_video_frame(unsigned char *data,
             output[offset++] = 0x00; // composit time
             output[offset++] = 0x00; //composit time
 
-            output[offset++] = (uint8_t)(nal_len >> 24); //nal length
-            output[offset++] = (uint8_t)(nal_len >> 16); //nal length
-            output[offset++] = (uint8_t)(nal_len >> 8); //nal length
-            output[offset++] = (uint8_t)(nal_len); //nal length
+            output[offset++] = (uint8_t) (nal_len >> 24); //nal length
+            output[offset++] = (uint8_t) (nal_len >> 16); //nal length
+            output[offset++] = (uint8_t) (nal_len >> 8); //nal length
+            output[offset++] = (uint8_t) (nal_len); //nal length
             memcpy(output + offset, nal, nal_len);
 
             //no need set pre_tag_size ,RTMP NO NEED
@@ -749,22 +739,22 @@ int rtmp_sender_write_video_frame(unsigned char *data,
 //            continue;
 //        }
 
-        if ((nal[0] & 0x1f) == 0x01)
-        {
+        if ((nal[0] & 0x1f) == 0x01) {
             body_len = nal_len + 5 + 4; //flv VideoTagHeader +  NALU length
             output_len = body_len + FLV_TAG_HEAD_LEN + FLV_PRE_TAG_LEN;
-            output = malloc(output_len);if (!output) {
+            output = malloc(output_len);
+            if (!output) {
                 LOGE("Memory is not allocated...");
             }
             // flv tag header
             output[offset++] = 0x09; //tagtype video
-            output[offset++] = (uint8_t)(body_len >> 16); //data len
-            output[offset++] = (uint8_t)(body_len >> 8); //data len
-            output[offset++] = (uint8_t)(body_len); //data len
-            output[offset++] = (uint8_t)(ts >> 16); //time stamp
-            output[offset++] = (uint8_t)(ts >> 8); //time stamp
-            output[offset++] = (uint8_t)(ts); //time stamp
-            output[offset++] = (uint8_t)(ts >> 24); //time stamp
+            output[offset++] = (uint8_t) (body_len >> 16); //data len
+            output[offset++] = (uint8_t) (body_len >> 8); //data len
+            output[offset++] = (uint8_t) (body_len); //data len
+            output[offset++] = (uint8_t) (ts >> 16); //time stamp
+            output[offset++] = (uint8_t) (ts >> 8); //time stamp
+            output[offset++] = (uint8_t) (ts); //time stamp
+            output[offset++] = (uint8_t) (ts >> 24); //time stamp
             output[offset++] = abs_ts; //stream id 0
             output[offset++] = 0x00; //stream id 0
             output[offset++] = 0x00; //stream id 0
@@ -776,10 +766,10 @@ int rtmp_sender_write_video_frame(unsigned char *data,
             output[offset++] = 0x00; // composit time
             output[offset++] = 0x00; //composit time
 
-            output[offset++] = (uint8_t)(nal_len >> 24); //nal length
-            output[offset++] = (uint8_t)(nal_len >> 16); //nal length
-            output[offset++] = (uint8_t)(nal_len >> 8); //nal length
-            output[offset++] = (uint8_t)(nal_len); //nal length
+            output[offset++] = (uint8_t) (nal_len >> 24); //nal length
+            output[offset++] = (uint8_t) (nal_len >> 16); //nal length
+            output[offset++] = (uint8_t) (nal_len >> 8); //nal length
+            output[offset++] = (uint8_t) (nal_len); //nal length
             memcpy(output + offset, nal, nal_len);
 
             //no need set pre_tag_size ,RTMP NO NEED
@@ -799,5 +789,5 @@ int rtmp_sender_write_video_frame(unsigned char *data,
         }
     }
 
-    return (val > 0) ? RTMP_OK: RTMP_ERROR;
+    return (val > 0) ? RTMP_OK : RTMP_ERROR;
 }

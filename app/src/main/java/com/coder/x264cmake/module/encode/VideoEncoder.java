@@ -157,7 +157,7 @@ public class VideoEncoder extends BaseMediaEncoder {
         }
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
         int outputBufferId = mVideoCodec.dequeueOutputBuffer(bufferInfo, 0);
-        if (outputBufferId >= 0) {
+        while (outputBufferId >= 0) {
             ByteBuffer[] outputBuffers = mVideoCodec.getOutputBuffers();
             ByteBuffer outputBuffer = outputBuffers[outputBufferId];
             if (mOnVideoEncodeCallback != null) {
@@ -165,6 +165,8 @@ public class VideoEncoder extends BaseMediaEncoder {
             }
             // 释放输出缓冲区
             mVideoCodec.releaseOutputBuffer(outputBufferId, false);
+
+            outputBufferId = mVideoCodec.dequeueOutputBuffer(bufferInfo, 0);
         }
     }
 
