@@ -1,6 +1,5 @@
 package com.coder.x264cmake.module.encode;
 
-import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -16,13 +15,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar;
 import static android.media.MediaFormat.KEY_BIT_RATE;
 import static android.media.MediaFormat.KEY_COLOR_FORMAT;
 import static android.media.MediaFormat.KEY_FRAME_RATE;
 import static android.media.MediaFormat.KEY_I_FRAME_INTERVAL;
 import static android.media.MediaFormat.KEY_MAX_INPUT_SIZE;
 
-public class VideoEncoder implements IMediaEncoder {
+public class VideoEncoder extends BaseMediaEncoder {
     // 视频编码配置文件
     private VideoConfig mVideoConfig;
     // 视频编码器
@@ -35,10 +35,11 @@ public class VideoEncoder implements IMediaEncoder {
     LinkedBlockingQueue<byte[]> mQueue;
     // 编码线程
     private Thread mEncodeThread;
-    // pts
-    private long presentationTimeUs;
+
     // 数据回调
     private OnVideoEncodeCallback mOnVideoEncodeCallback;
+    // 编码的planar - i420
+    private final int mKeyColorFormat = COLOR_FormatYUV420Planar;
 
     public void setOnVideoEncodeCallback(OnVideoEncodeCallback onVideoEncodeCallback) {
         mOnVideoEncodeCallback = onVideoEncodeCallback;
@@ -61,24 +62,22 @@ public class VideoEncoder implements IMediaEncoder {
 
     private void initEnCoder() {
         // 使用h.264 avc编码
-        String mineType = "video/avc";
+        String mimeType = "video/avc";
+        // 防止设置的宽高不是2的倍数，出现IllegalStateException错误
+        int width = mVideoConfig.width / 2 * 2;
+        int height = mVideoConfig.height / 2 * 2;
 
-        MediaFormat format = MediaFormat.createVideoFormat(mineType,
-                mVideoConfig.width,
-                mVideoConfig.height);
+        MediaFormat format = MediaFormat.createVideoFormat(mimeType, width, height);
         format.setInteger(KEY_MAX_INPUT_SIZE, 10 * 1024);
         format.setInteger(KEY_BIT_RATE, mVideoConfig.bitrate);
-        format.setInteger(KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar);
+        format.setInteger(KEY_COLOR_FORMAT, mKeyColorFormat);
         format.setInteger(KEY_FRAME_RATE, mVideoConfig.fps);
         format.setInteger(KEY_I_FRAME_INTERVAL, 1);
 
         try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                MediaCodecList codecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
-                mVideoCodec = MediaCodec.createByCodecName(codecList.findEncoderForFormat(format));
-            }else {
-                mVideoCodec = MediaCodec.createEncoderByType(mineType);
-            }
+            MediaCodecInfo mediaCodecInfo = getCodecInfoByMimeType(mimeType);
+            if (mediaCodecInfo == null) return;
+            mVideoCodec = MediaCodec.createByCodecName(mediaCodecInfo.getName());
         } catch (IOException e) {
             LogUtils.e("Failed to create video encoder!");
         }
@@ -101,13 +100,13 @@ public class VideoEncoder implements IMediaEncoder {
         mEncodeThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                presentationTimeUs = System.nanoTime();
+                if (!isPresentationTimeUs){
+                    presentationTimeUs = System.nanoTime();
+                    isPresentationTimeUs = true;
+                }
                 if (mVideoCodec != null) mVideoCodec.start();
                 while (mEncState == EncodeEncState.ENCODING || !mEncodeThread.isInterrupted()) {
                     try {
-//                        if (mQueue.isEmpty() || mQueue.size() == 0){
-//                            return;
-//                        }
                         byte[] data = mQueue.take();
                         encodeData(data);
                     } catch (InterruptedException e) {
@@ -188,6 +187,29 @@ public class VideoEncoder implements IMediaEncoder {
             mEncodeThread.interrupt();
         }
 
+    }
+
+
+    private MediaCodecInfo getCodecInfoByMimeType(String mimeType) {
+        for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
+            MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+            if (!codecInfo.isEncoder()) {
+                continue;
+            }
+            String[] types = codecInfo.getSupportedTypes();
+            for (int j = 0; j < types.length; j++) {
+                if (types[j].equalsIgnoreCase(mimeType)) {
+                    MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(mimeType);
+                    for (int k = 0; k < capabilities.colorFormats.length; k++) {
+                        int colorFormat = capabilities.colorFormats[k];
+                        if (colorFormat == mKeyColorFormat) {
+                            return codecInfo;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public interface OnVideoEncodeCallback {

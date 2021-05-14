@@ -4,6 +4,7 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaFormat;
 
 import com.coder.x264cmake.module.encode.config.AudioConfig;
@@ -19,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static android.media.MediaFormat.KEY_BIT_RATE;
 import static android.media.MediaFormat.KEY_MAX_INPUT_SIZE;
 
-public class AudioEncoder implements IMediaEncoder {
+public class AudioEncoder extends BaseMediaEncoder {
     // 音频配置文件
     private AudioConfig mAudioConfig;
     // 音频编码器
@@ -32,8 +33,6 @@ public class AudioEncoder implements IMediaEncoder {
     LinkedBlockingQueue<byte[]> mQueue;
     // 编码线程
     private Thread mEncodeThread;
-
-    private long presentationTimeUs;
 
     private OnAudioEncodeCallback mOnAudioEncodeCallback;
 
@@ -58,14 +57,8 @@ public class AudioEncoder implements IMediaEncoder {
 
     private void initEnCoder() {
         // 使用latm编码
-        String mineType = "audio/mp4a-latm";
-        try {
-            mAudioCodec = MediaCodec.createEncoderByType(mineType);
-        } catch (IOException e) {
-            LogUtils.e("Failed to create audio encoder!");
-        }
-
-        MediaFormat format = MediaFormat.createAudioFormat(mineType,
+        String mimeType = "audio/mp4a-latm";
+        MediaFormat format = MediaFormat.createAudioFormat(mimeType,
                 mAudioConfig.sampleRate,
                 mAudioConfig.channelCount);
 
@@ -76,11 +69,20 @@ public class AudioEncoder implements IMediaEncoder {
         int bufferSizeInBytes = AudioRecord.getMinBufferSize(mAudioConfig.sampleRate,
                 channelConfig, mAudioConfig.audioFormat);
 
-        format.setInteger(KEY_MAX_INPUT_SIZE, 10 * 1024);
+        format.setInteger(KEY_MAX_INPUT_SIZE, 2*bufferSizeInBytes);
         // 设置ACC规格为LC
         format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
         // 设置比特率
         format.setInteger(KEY_BIT_RATE, mAudioConfig.bitRate);
+
+        try {
+            MediaCodecInfo mediaCodecInfo =  getCodecInfoByMimeType(mimeType);
+            if (mediaCodecInfo == null) return;
+            mAudioCodec = MediaCodec.createByCodecName(mediaCodecInfo.getName());
+        } catch (IOException e) {
+            LogUtils.e("Failed to create audio encoder!");
+        }
+
         // 配置状态configured
         mAudioCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         // 建立一个缓存队列
@@ -98,13 +100,16 @@ public class AudioEncoder implements IMediaEncoder {
         mEncodeThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                presentationTimeUs = System.nanoTime();
+                if (!isPresentationTimeUs){
+                    presentationTimeUs = System.nanoTime();
+                    isPresentationTimeUs = true;
+                }
                 if (mAudioCodec != null) mAudioCodec.start();
                 while (mEncState == EncodeEncState.ENCODING || !mEncodeThread.isInterrupted()) {
                     try {
-//                        if (mQueue.isEmpty() || mQueue.size() == 0){
-//                            continue;
-//                        }
+                        if (mQueue.isEmpty() || mQueue.size() == 0){
+                            continue;
+                        }
                         byte[] data = mQueue.take();
                         encodeData(data);
                     } catch (InterruptedException e) {
@@ -142,9 +147,9 @@ public class AudioEncoder implements IMediaEncoder {
 
     private void encodeData(byte[] data) {
         // 获取缓存id
-        LogUtils.d("Audio Encoder ===>>> start to dequeue input buffer");
+//        LogUtils.d("Audio Encoder ===>>> start to dequeue input buffer");
         int inputBufferId = mAudioCodec.dequeueInputBuffer(-1);
-        LogUtils.d("Audio Encoder ===>>> dequeue input buffer");
+//        LogUtils.d("Audio Encoder ===>>> dequeue input buffer");
         if (inputBufferId >= 0) {
             ByteBuffer[] inputBuffers = mAudioCodec.getInputBuffers();
             ByteBuffer inputBuffer = inputBuffers[inputBufferId];
@@ -203,8 +208,8 @@ public class AudioEncoder implements IMediaEncoder {
         int chanCfg = 2; // CPE
         // fill in ADTS data
         packet[0] = (byte) 0xFF;
-//        packet[1] = (byte)0xF9;//-7 网上的都是这个，但不能在ios 播放
-        packet[1] = (byte) 0xF1;//-15 这个能在ios 能播放，
+        packet[1] = (byte)0xF9;//-7 网上的都是这个，但不能在ios 播放
+//        packet[1] = (byte) 0xF1;//-15 这个能在ios 能播放，
         packet[2] = (byte) (((profile - 1) << 6) + (freqIdx << 2) + (chanCfg >> 2));
         packet[3] = (byte) (((chanCfg & 3) << 6) + (packetLen >> 11));
         packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
@@ -231,6 +236,22 @@ public class AudioEncoder implements IMediaEncoder {
             mEncodeThread.interrupt();
         }
 
+    }
+
+    private MediaCodecInfo getCodecInfoByMimeType(String mimeType) {
+        for (int i = 0; i < MediaCodecList.getCodecCount(); i++) {
+            MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+            if (!codecInfo.isEncoder()) {
+                continue;
+            }
+            String[] types = codecInfo.getSupportedTypes();
+            for (int j = 0; j < types.length; j++) {
+                if (types[j].equalsIgnoreCase(mimeType)) {
+                    return codecInfo;
+                }
+            }
+        }
+        return null;
     }
 
     public interface OnAudioEncodeCallback {

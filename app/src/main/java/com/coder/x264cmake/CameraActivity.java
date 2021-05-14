@@ -66,8 +66,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private final int bitrate = 96000;
 
     private RtmpPusher mRtmpPusher;
-
     private byte[] mBytes;
+
+    private long presentationTimeUs;
+
+
 
     public static void start(Context context) {
         Intent starter = new Intent(context, CameraActivity.class);
@@ -125,7 +128,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 //                    byte[] data = new byte[dst.length];
                     if (mCameraLoader.cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                         mYuvCore.rotateI420(mBytes,src,width,height,90);
-
                         //                        x264Encode.encode_x264_data(YUV420Utils.rotate90(data, width, height));
                     } else {
                         mYuvCore.rotateI420(mBytes,src,width,height,270);
@@ -163,20 +165,20 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mVideoEncoder.setOnVideoEncodeCallback(new VideoEncoder.OnVideoEncodeCallback() {
             @Override
             public void onVideoEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-                LogUtils.d("Timestamp===>>>> Video:"+bufferInfo.presentationTimeUs/1000);
+                long timestamp = System.nanoTime() - presentationTimeUs;
+                LogUtils.d("rtmp-core===>>>> Video:"+timestamp);
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
-                mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,
-                        bufferInfo.presentationTimeUs/1000000);
+                mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,timestamp);
             }
         });
 
         mAudioEncoder.setOnAudioEncodeCallback(new AudioEncoder.OnAudioEncodeCallback() {
             @Override
             public void onAudioEncode(byte[] bytes, MediaCodec.BufferInfo bufferInfo) {
-                LogUtils.d("Timestamp===>>>> Audio:"+bufferInfo.presentationTimeUs/1000);
-                mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size,
-                        bufferInfo.presentationTimeUs/1000000);
+                long timestamp = System.nanoTime() - presentationTimeUs;
+                LogUtils.d("rtmp-core===>>>> Audio:"+timestamp);
+                mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size, timestamp);
             }
         });
 
@@ -205,7 +207,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 mAudioLoader.stopRecord();
                 mRtmpPusher.rtmp_pusher_close();
             } else {
-                mRtmpPusher.rtmp_pusher_open("rtmp://192.168.10.161:8080/toto/live",720,1440);
+                mRtmpPusher.rtmp_pusher_open("rtmp://192.168.10.161:1935/live/toto",720,1440);
                 h264Path = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".h264";
 //                x264Encode.init_x264(720, 1440, h264Path, YUVFormat.YUV_NV21);
                 mVideoEncoder.setup(mVideoConfig);
@@ -222,6 +224,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 mAudioEncoder.start();
 
                 mAudioLoader.startRecord();
+                presentationTimeUs = System.nanoTime();
             }
         } else if (v.getId() == R.id.back_btn) {
             finish();

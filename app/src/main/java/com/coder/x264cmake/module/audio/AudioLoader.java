@@ -35,7 +35,7 @@ public class AudioLoader {
         }
         // 计算最小的录制缓存
         bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.CAMCORDER,
+        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
                 sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
 
     }
