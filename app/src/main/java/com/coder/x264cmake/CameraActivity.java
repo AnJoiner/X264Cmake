@@ -169,7 +169,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 LogUtils.d("rtmp-core===>>>> Video:"+timestamp);
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
-                mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,timestamp);
+                mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,bufferInfo.presentationTimeUs/1000000);
             }
         });
 
@@ -178,7 +178,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             public void onAudioEncode(byte[] bytes, MediaCodec.BufferInfo bufferInfo) {
                 long timestamp = System.nanoTime() - presentationTimeUs;
                 LogUtils.d("rtmp-core===>>>> Audio:"+timestamp);
-                mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size, timestamp);
+                mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size, bufferInfo.presentationTimeUs/1000000);
             }
         });
 
@@ -207,7 +207,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 mAudioLoader.stopRecord();
                 mRtmpPusher.rtmp_pusher_close();
             } else {
-                mRtmpPusher.rtmp_pusher_open("rtmp://192.168.10.161:1935/live/toto",720,1440);
+                mRtmpPusher.rtmp_pusher_open("rtmp://192.168.10.161:8080/toto/live",720,1440);
                 h264Path = getExternalCacheDir() + File.separator + System.currentTimeMillis() + ".h264";
 //                x264Encode.init_x264(720, 1440, h264Path, YUVFormat.YUV_NV21);
                 mVideoEncoder.setup(mVideoConfig);
