@@ -84,6 +84,7 @@ uint32_t start_time;
 static pthread_t pt;
 static int rtmp_state = RTMP_STOPPED;
 static LinkedQueue *rtmp_queue;
+static int counter = 0;
 
 static void *thread_pushing(void *args) {
     while (rtmp_state == RTMP_PUSHING && rtmp != NULL && RTMP_IsConnected(rtmp)) {
@@ -96,7 +97,10 @@ static void *thread_pushing(void *args) {
         int size = node->size;
         RTMP_Write(rtmp, data, size);
 
-        LOGI("Pushing rtmp data...");
+        if (counter % 50 == 0) {
+            LOGI("Pushing rtmp data...");
+        }
+        counter++;
 
         free(data);
         free(node);
@@ -379,7 +383,7 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         return RTMP_ERROR;
     }
     int val = 0;
-    uint32_t audio_ts = (RTMP_GetTime() - start_time) / 1000;
+    uint32_t audio_ts = (RTMP_GetTime() - start_time);
     uint32_t offset;
     uint32_t body_len;
     uint32_t output_len;
@@ -401,10 +405,10 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         output[offset++] = (uint8_t) (body_len >> 16); //data len
         output[offset++] = (uint8_t) (body_len >> 8); //data len
         output[offset++] = (uint8_t) (body_len); //data len
-        output[offset++] = 0x00; //time stamp
-        output[offset++] = 0x00; //time stamp
-        output[offset++] = 0x00; //time stamp
-        output[offset++] = 0x00; //time stamp
+        output[offset++] = (uint8_t) (audio_ts >> 16); //time stamp
+        output[offset++] = (uint8_t) (audio_ts >> 8); //time stamp
+        output[offset++] = (uint8_t) (audio_ts); //time stamp
+        output[offset++] = (uint8_t) (audio_ts >> 24); //time stamp
         output[offset++] = abs_ts; //stream id 0
         output[offset++] = 0x00; //stream id 0
         output[offset++] = 0x00; //stream id 0
@@ -418,7 +422,7 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         output[offset++] = data[1];
 //        memcpy(&output[13], output, size);
 
-        val = push_data(rtmp_queue,output,output_len);
+        val = push_data(rtmp_queue, output, output_len);
 //        val = RTMP_Write(rtmp, output, output_len);
 //        free(output);
 
@@ -460,7 +464,7 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
 
 //        val = RTMP_Write(rtmp, output, output_len);
 //        free(output);
-        val = push_data(rtmp_queue,output,output_len);
+        val = push_data(rtmp_queue, output, output_len);
     }
     return (val > 0) ? RTMP_OK : RTMP_ERROR;
 }
@@ -561,7 +565,7 @@ int rtmp_sender_write_video_frame(unsigned char *data,
     buf = data;
     buf_offset = data;
     total = size;
-    ts = (RTMP_GetTime() - start_time) / 1000;
+    ts = (RTMP_GetTime() - start_time);
 
     if (data == NULL) {
         LOGE("Write video data is NULL!");
@@ -635,7 +639,7 @@ int rtmp_sender_write_video_frame(unsigned char *data,
 //            val = RTMP_Write(rtmp, output, output_len);
 //            //RTMP Send out
 //            free(output);
-            val = push_data(rtmp_queue,output,output_len);
+            val = push_data(rtmp_queue, output, output_len);
 
             video_config_ok = true;
             continue;
@@ -686,7 +690,7 @@ int rtmp_sender_write_video_frame(unsigned char *data,
 //            val = RTMP_Write(rtmp, output, output_len);
 //            //RTMP Send out
 //            free(output);
-            val = push_data(rtmp_queue,output,output_len);
+            val = push_data(rtmp_queue, output, output_len);
             continue;
         }
 
@@ -747,7 +751,7 @@ int rtmp_sender_write_video_frame(unsigned char *data,
 //
 //            //RTMP Send out
 //            free(output);
-            val = push_data(rtmp_queue,output,output_len);
+            val = push_data(rtmp_queue, output, output_len);
             continue;
         }
     }
