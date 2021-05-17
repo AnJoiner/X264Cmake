@@ -27,7 +27,7 @@ LinkedQueue *create_queue(){
 }
 
 
-int push_data(LinkedQueue *queue, char *data) {
+int push_data(LinkedQueue *queue, char *data, int data_size) {
     LOGI("start push data into queue...");
     QNode *node = (QNode *) malloc(sizeof(QNode));
     if (node == NULL)    /* 判断分配内存是否失败 */
@@ -36,6 +36,7 @@ int push_data(LinkedQueue *queue, char *data) {
         return -1;
     }
     node->data = data;
+    node->size = data_size;
     node->next = NULL;
     if (queue->front == NULL){
         queue->front = node;
@@ -55,7 +56,7 @@ int queue_is_empty(LinkedQueue *queue) {
     return (queue->front == NULL);
 }
 
-char *pop_data(LinkedQueue *queue) {
+QNode *pop_data(LinkedQueue *queue) {
     LOGI("start pop data from queue...");
     char *data = NULL;
     // 队列为空无法出栈
@@ -74,11 +75,26 @@ char *pop_data(LinkedQueue *queue) {
         queue->front = queue->front->next;
         queue->length--;
     }
-    data = temp->data;
-    free(temp);
+//    data = temp->data;
+//    free(temp);
     LOGI("pop data from queue success");
-    return data;
+    return temp;
 }
 
+
+int free_queue(LinkedQueue *queue){
+    int val = 0;
+
+    while (queue->length > 0){
+      QNode * node = pop_data(queue);
+      if (node!=NULL) {
+          if (node->data!=NULL) free(node->data);
+          free(node);
+      }
+    }
+    free(queue);
+    LOGI("Succeed to release queue!");
+    return val;
+}
 
 

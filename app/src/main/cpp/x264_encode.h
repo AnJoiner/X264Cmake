@@ -25,6 +25,6 @@ enum {
 
 int x264_enc_init(int width, int height, const char *x264_file_path, int yuv_format);
 
-int x264_enc_data(char *buffer);
+int x264_enc_data(char *buffer, int size);
 
 void x264_enc_release();

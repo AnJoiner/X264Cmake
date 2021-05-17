@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <malloc.h>
 #include "faac_encode.h"
 #include "faac.h"
 #include "safe_queue.h"
@@ -22,7 +23,7 @@ uint64_t max_out_bytes = 0;
 faacEncHandle faac_enc_handle;
 // 输出的aac文件
 FILE *faac_file;
-// h264的队列
+// aac队列
 LinkedQueue *faac_queue;
 // fdk-aac初始化状态
 int faac_enc_state = FAAC_ENC_UNINITIALIZED;
@@ -98,12 +99,16 @@ int faac_enc_init(unsigned long sample_rate, unsigned long  channel, unsigned lo
     return FAAC_ENC_OK;
 }
 
-int faac_enc_encode_data(int in_size) {
+int faac_enc_encode_data() {
     if (queue_is_empty(faac_queue)) {
         LOGW("queue is empty and waiting...");
         return FAAC_ENC_FAIL;
     }
-    char *in_data = pop_data(faac_queue);
+    QNode *node = pop_data(faac_queue);
+    char *in_data = node->data;
+    int in_size = node->size;
+    free(node);
+
     if (in_data == NULL) {
         LOGE("buffer is NULL");
         return FAAC_ENC_FAIL;
@@ -148,11 +153,11 @@ int faac_enc_data(char *buffer, int size) {
     }
 
     // 将编码前的数据放入缓存
-    push_data(faac_queue, buffer);
+    push_data(faac_queue, buffer, size);
     // 如果编码已经停止，需重新启动
     if (faac_enc_encoding_state == FAAC_ENC_STOPPED) {
         do {
-            int ret = faac_enc_encode_data(size);
+            int ret = faac_enc_encode_data();
             // 被用户释放之后，释放资源并跳出循环编码
             if (faac_enc_state == FAAC_ENC_UNINITIALIZED) {
                 faac_enc_release_data();

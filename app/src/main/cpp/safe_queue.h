@@ -15,6 +15,7 @@ enum queue_empty_status{
 
 typedef struct QNode{
     char *data;
+    int size;
     struct QNode *next;
 } QNode;
 
@@ -37,9 +38,9 @@ LinkedQueue *create_queue();
  * push data into the linked queue
  * @param queue
  * @param data
- * @return 0 : success 1:failure
+ * @return 0 : success -1:failure
  */
-int push_data(LinkedQueue *queue, char *data);
+int push_data(LinkedQueue *queue, char *data, int data_size);
 
 /**
  *
@@ -53,7 +54,14 @@ int queue_is_empty(LinkedQueue *queue);
  * @param queue
  * @return data
  */
-char *pop_data(LinkedQueue *queue);
+QNode *pop_data(LinkedQueue *queue);
+
+/**
+ * release queue
+ * @param queue
+ * @return 0 : success -1:failure
+ */
+int free_queue(LinkedQueue *queue);
 
 
 

@@ -6,11 +6,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include <malloc.h>
+#include <threads.h>
 
 #include "librtmp/rtmp.h"
 #include "android/log.h"
 #include "librtmp/log.h"
 #include "rtmp_core.h"
+#include "safe_queue.h"
+
 
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE  , "rtmp-core", __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "rtmp-core", __VA_ARGS__)
@@ -20,6 +23,9 @@
 #define LOGF(...) __android_log_print(ANDROID_LOG_FATAL  , "rtmp-core", __VA_ARGS__)
 
 
+#define AAC_ADTS_HEADER_SIZE 7
+#define FLV_TAG_HEAD_LEN 11
+#define FLV_PRE_TAG_LEN 4
 // @brief start publish
 // @param [in] rtmp_sender handler
 // @param [in] flag        stream falg
@@ -40,6 +46,7 @@ static const AVal av_avc1 = AVC("avc1");
 static const AVal av_mp4a = AVC("mp4a");
 static const AVal av_onPrivateData = AVC("onPrivateData");
 static const AVal av_record = AVC("record");
+
 
 static void rtmp_android_log_callback(int level, const char *fmt, va_list vl) {
     char log[1024];
@@ -67,16 +74,36 @@ static void rtmp_android_log_callback(int level, const char *fmt, va_list vl) {
 }
 
 
-RTMP *rtmp;
+static RTMP *rtmp;
 bool video_config_ok = false;
 bool audio_config_ok = false;
 
 uint32_t start_time;
 
-#define AAC_ADTS_HEADER_SIZE 7
-#define FLV_TAG_HEAD_LEN 11
-#define FLV_PRE_TAG_LEN 4
 
+static pthread_t pt;
+static int rtmp_state = RTMP_STOPPED;
+static LinkedQueue *rtmp_queue;
+
+static void *thread_pushing(void *args) {
+    while (rtmp_state == RTMP_PUSHING && rtmp != NULL && RTMP_IsConnected(rtmp)) {
+        if (rtmp_queue == NULL) continue;
+        if (queue_is_empty(rtmp_queue)) continue;
+        QNode *node = pop_data(rtmp_queue);
+
+        if (node == NULL) continue;
+        char *data = node->data;
+        int size = node->size;
+        RTMP_Write(rtmp, data, size);
+
+        LOGI("Pushing rtmp data...");
+
+        free(data);
+        free(node);
+    }
+    pthread_exit(0);
+//    return NULL;
+}
 
 static uint8_t gen_audio_tag_header() {
     /*
@@ -140,6 +167,11 @@ static uint8_t gen_audio_tag_header() {
 }
 
 int rtmp_pusher_open(char *url, uint32_t video_width, uint32_t video_height) {
+    rtmp_queue = create_queue();
+    if (rtmp_queue == NULL) {
+        LOGE("Failed to create rtmp queue!");
+        return RTMP_ERROR;
+    }
     RTMP_LogSetLevel(RTMP_LOGINFO);
     RTMP_LogSetCallback(rtmp_android_log_callback);
     rtmp = RTMP_Alloc();
@@ -219,7 +251,12 @@ int rtmp_pusher_open(char *url, uint32_t video_width, uint32_t video_height) {
 
         LOGI("Starting push ...");
         start_time = RTMP_GetTime();
-        return RTMP_Write(rtmp, send_buffer, output_len);
+        ret = RTMP_Write(rtmp, send_buffer, output_len);
+
+        pthread_create(&pt, NULL, thread_pushing, NULL);
+        rtmp_state = RTMP_PUSHING;
+
+        return ret > 0 ? RTMP_OK : RTMP_ERROR;
     }
     return RTMP_ERROR;
 }
@@ -251,11 +288,14 @@ int rtmp_sender_alloc(char *url) {
 }
 
 int rtmp_sender_close() {
+    rtmp_state = RTMP_STOPPED;
     if (rtmp) {
         RTMP_Close(rtmp);
         RTMP_Free(rtmp);
         rtmp = NULL;
     }
+    // 释放队列
+    free_queue(rtmp_queue);
     LOGI("Succeed to close rtmp!");
     return 0;
 }
@@ -339,7 +379,7 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         return RTMP_ERROR;
     }
     int val = 0;
-    uint32_t audio_ts = (RTMP_GetTime() - start_time)/1000;
+    uint32_t audio_ts = (RTMP_GetTime() - start_time) / 1000;
     uint32_t offset;
     uint32_t body_len;
     uint32_t output_len;
@@ -378,8 +418,9 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         output[offset++] = data[1];
 //        memcpy(&output[13], output, size);
 
-        val = RTMP_Write(rtmp, output, output_len);
-        free(output);
+        val = push_data(rtmp_queue,output,output_len);
+//        val = RTMP_Write(rtmp, output, output_len);
+//        free(output);
 
         audio_config_ok = true;
     } else {
@@ -417,8 +458,9 @@ int rtmp_sender_write_audio_frame(unsigned char *data,
         output[offset++] = (uint8_t)(fff); //data len
         */
 
-        val = RTMP_Write(rtmp, output, output_len);
-        free(output);
+//        val = RTMP_Write(rtmp, output, output_len);
+//        free(output);
+        val = push_data(rtmp_queue,output,output_len);
     }
     return (val > 0) ? RTMP_OK : RTMP_ERROR;
 }
@@ -519,7 +561,7 @@ int rtmp_sender_write_video_frame(unsigned char *data,
     buf = data;
     buf_offset = data;
     total = size;
-    ts = (RTMP_GetTime() - start_time)/1000;
+    ts = (RTMP_GetTime() - start_time) / 1000;
 
     if (data == NULL) {
         LOGE("Write video data is NULL!");
@@ -590,9 +632,10 @@ int rtmp_sender_write_video_frame(unsigned char *data,
 
             //no need set pre_tag_size ,RTMP NO NEED
 
-            val = RTMP_Write(rtmp, output, output_len);
-            //RTMP Send out
-            free(output);
+//            val = RTMP_Write(rtmp, output, output_len);
+//            //RTMP Send out
+//            free(output);
+            val = push_data(rtmp_queue,output,output_len);
 
             video_config_ok = true;
             continue;
@@ -640,9 +683,10 @@ int rtmp_sender_write_video_frame(unsigned char *data,
             output[offset++] = (uint8_t)(fff >> 8); //data len
             output[offset++] = (uint8_t)(fff); //data len
             */
-            val = RTMP_Write(rtmp, output, output_len);
-            //RTMP Send out
-            free(output);
+//            val = RTMP_Write(rtmp, output, output_len);
+//            //RTMP Send out
+//            free(output);
+            val = push_data(rtmp_queue,output,output_len);
             continue;
         }
 
@@ -699,10 +743,11 @@ int rtmp_sender_write_video_frame(unsigned char *data,
             output[offset++] = (uint8_t)(fff >> 8); //data len
             output[offset++] = (uint8_t)(fff); //data len
             */
-            val = RTMP_Write(rtmp, output, output_len);
-
-            //RTMP Send out
-            free(output);
+//            val = RTMP_Write(rtmp, output, output_len);
+//
+//            //RTMP Send out
+//            free(output);
+            val = push_data(rtmp_queue,output,output_len);
             continue;
         }
     }

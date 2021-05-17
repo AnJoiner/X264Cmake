@@ -17,6 +17,12 @@ enum {
     RTMP_CONNECTED_OK = 1
 };
 
+
+enum {
+    RTMP_PUSHING,
+    RTMP_STOPPED
+};
+
 int rtmp_pusher_open(char* url,unsigned int video_width, unsigned int video_height);
 
 int rtmp_sender_alloc(char *url);

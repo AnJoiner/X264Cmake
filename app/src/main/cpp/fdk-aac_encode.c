@@ -150,12 +150,15 @@ int fdk_aac_enc_init(int sample_rate, int channel, int bitrate, const char *aac_
     return FDKAAC_ENC_OK;
 }
 
-int fdk_aac_enc_encode_data(int in_size) {
+int fdk_aac_enc_encode_data() {
     if (queue_is_empty(aac_queue)) {
         LOGW("queue is empty and waiting...");
         return FDKAAC_ENC_FAIL;
     }
-    char *in_data = pop_data(aac_queue);
+    QNode *node = pop_data(aac_queue);
+    char *in_data = node->data;
+    int in_size = node->size;
+    free(node);
     if (in_data == NULL) {
         LOGE("buffer is NULL");
         return FDKAAC_ENC_FAIL;
@@ -234,11 +237,11 @@ int fdk_aac_enc_data(char *buffer, int size) {
     }
 
     // 将编码前的数据放入缓存
-    push_data(aac_queue, buffer);
+    push_data(aac_queue, buffer, size);
     // 如果编码已经停止，需重新启动
     if (fdkaac_enc_encoding_state == FDKAAC_ENC_STOPPED) {
         do {
-            int ret = fdk_aac_enc_encode_data(size);
+            int ret = fdk_aac_enc_encode_data();
             // 被用户释放之后，释放资源并跳出循环编码
             if (fdkaac_enc_state == FDKAAC_ENC_UNINITIALIZED) {
                 fdk_aac_enc_release_data();

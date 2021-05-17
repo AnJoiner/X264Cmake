@@ -93,7 +93,7 @@ Java_com_coder_x264cmake_jni_X264Encode_encode_1x264_1data(JNIEnv *env, jobject 
     LOGI("incoming yuv data size %ld", strlen(buffer));
     // 释放资源
     env->ReleaseByteArrayElements(data, bytes, 0);
-    int ret = x264_enc_data(buffer);
+    int ret = x264_enc_data(buffer, size);
     delete[] buffer;
     return ret;
 }

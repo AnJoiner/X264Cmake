@@ -131,7 +131,10 @@ int x264_enc_encode_data() {
         LOGW("queue is empty and waiting...");
         return X264_ENC_FAIL;
     }
-    char *buffer = pop_data(h264_queue);
+    QNode *node = pop_data(h264_queue);
+    char *buffer = node->data;
+    int buffer_size = node->size;
+    free(node);
 
     if (buffer == NULL) {
         LOGE("buffer is NULL");
@@ -215,7 +218,7 @@ void x264_enc_release_data() {
     LOGI("Succeed to release x264!");
 }
 
-int x264_enc_data(char *buffer) {
+int x264_enc_data(char *buffer, int size) {
     // 初始化之后才能进行编码
     if (x264_enc_state == X264_ENC_UNINITIALIZED) {
         LOGE(" X264 encoder can be used After it is initialized!");
@@ -226,7 +229,7 @@ int x264_enc_data(char *buffer) {
         return X264_ENC_FAIL;
     }
     // 将编码前的数据放入缓存
-    push_data(h264_queue, buffer);
+    push_data(h264_queue, buffer,size);
     // 如果编码已经停止，需重新启动
     if (x264_enc_encoding_state == X264_ENC_STOPPED) {
         do {

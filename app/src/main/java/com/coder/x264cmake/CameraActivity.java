@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static android.media.AudioFormat.CHANNEL_IN_STEREO;
 import static android.media.AudioFormat.ENCODING_PCM_16BIT;
@@ -69,7 +70,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     private byte[] mBytes;
 
     private long presentationTimeUs;
-
 
 
     public static void start(Context context) {
@@ -166,7 +166,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onVideoEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
                 long timestamp = bufferInfo.presentationTimeUs;
-                LogUtils.d("rtmp-core===>>>> Video:"+timestamp/1000);
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
                 mRtmpPusher.rtmp_pusher_push_video(data,bufferInfo.size,timestamp/1000);
@@ -177,7 +176,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onAudioEncode(byte[] bytes, MediaCodec.BufferInfo bufferInfo) {
                 long timestamp = bufferInfo.presentationTimeUs;
-                LogUtils.d("rtmp-core===>>>> Audio:"+timestamp/1000);
                 mRtmpPusher.rtmp_pusher_push_audio(bytes,bufferInfo.size, timestamp/1000);
             }
         });
