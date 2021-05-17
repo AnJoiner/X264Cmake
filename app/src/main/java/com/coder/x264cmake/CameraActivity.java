@@ -23,15 +23,11 @@ import com.coder.x264cmake.module.encode.VideoEncoder;
 import com.coder.x264cmake.module.encode.config.AudioConfig;
 import com.coder.x264cmake.module.encode.config.VideoConfig;
 import com.coder.x264cmake.utils.LogUtils;
-import com.coder.x264cmake.utils.YUV420Utils;
 import com.coder.x264cmake.widgets.CameraPreview;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import static android.media.AudioFormat.CHANNEL_IN_STEREO;
 import static android.media.AudioFormat.ENCODING_PCM_16BIT;
