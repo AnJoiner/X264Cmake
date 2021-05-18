@@ -56,6 +56,7 @@ Java_com_coder_x264cmake_jni_RtmpPusher_rtmp_1pusher_1push_1audio(JNIEnv *env, j
     }
     int ret = rtmp_sender_write_audio_frame(buffer,size,timestamp,0);
     delete[] buffer;
+    env->ReleaseByteArrayElements(data,bytes,0);
     return ret;
 }
 
@@ -71,6 +72,7 @@ Java_com_coder_x264cmake_jni_RtmpPusher_rtmp_1pusher_1push_1video(JNIEnv *env, j
     }
     int ret = rtmp_sender_write_video_frame(buffer,size,timestamp,0);
     delete[] buffer;
+    env->ReleaseByteArrayElements(data,bytes,0);
     return ret;
 }
 
