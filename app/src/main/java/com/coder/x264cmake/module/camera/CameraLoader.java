@@ -176,10 +176,17 @@ public class CameraLoader {
         int surfaceWidth = DensityUtils.width();
         int surfaceHeight = DensityUtils.height();
 
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Camera.Size supportSize : supportSizes) {
+            stringBuilder.append("[").append(supportSize.width).append(",").append(supportSize.height).append("]")
+                    .append(", ");
+        }
+        LogUtils.d("CameraLoader===>>> supportSize:"+ stringBuilder.toString());
+
         Camera.Size size = getCloselyPreSize(surfaceWidth, surfaceHeight, supportSizes);
         videoWidth = size.width;
         videoHeight = size.height;
-        LogUtils.d("CameraLoader===>>> width:"+videoWidth+", height:"+videoHeight);
+//        LogUtils.d("CameraLoader===>>> width:"+videoWidth+", height:"+videoHeight);
         parameters.setPreviewSize(size.width, size.height);
     }
 
