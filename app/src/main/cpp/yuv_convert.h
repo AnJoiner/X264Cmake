@@ -7,6 +7,12 @@
 
 #endif //X264CMAKE_YUV_CONVERT_H
 
+
+void i420_to_rgba(char *src, char *dst, int width, int height);
+
+
+void nv21_to_abgr(char *src, char *dst, int width, int height);
+
 /**
  * nv21 convert to i420
  */

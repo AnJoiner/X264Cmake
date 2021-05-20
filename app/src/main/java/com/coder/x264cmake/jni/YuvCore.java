@@ -6,9 +6,13 @@ public class YuvCore {
         System.loadLibrary("yuv");
     }
 
-    public native void nv21ToI420(byte[] src, byte[] dst, int width, int height);
+    public native static void nv21ToABGR(byte[] src, byte[] dst, int width, int height);
 
-    public native void i420ToNv21(byte[] src, byte[] dst, int width, int height);
+    public native static void i420ToRGBA(byte[] src, byte[] dst, int width, int height);
 
-    public native void rotateI420(byte[] src, byte[] dst, int width, int height, int degree);
+    public native static void nv21ToI420(byte[] src, byte[] dst, int width, int height);
+
+    public native static void i420ToNv21(byte[] src, byte[] dst, int width, int height);
+
+    public native static void rotateI420(byte[] src, byte[] dst, int width, int height, int degree);
 }
