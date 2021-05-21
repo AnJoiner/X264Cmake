@@ -94,36 +94,51 @@ public class OpenGlUtils {
     }
 
     public static int loadProgram(final String strVSource, final String strFSource) {
-        int iVShader;
-        int iFShader;
-        int iProgramId;
+        int vertexShaderId;
+        int fragmentShaderId;
+        int programObjectId;
         int[] link = new int[1];
-        iVShader = loadShader(strVSource, GLES20.GL_VERTEX_SHADER);
-        if (iVShader == 0) {
+        vertexShaderId = loadShader(strVSource, GLES20.GL_VERTEX_SHADER);
+        if (vertexShaderId == 0) {
             Log.d("Load Program", "Vertex Shader Failed");
             return 0;
         }
-        iFShader = loadShader(strFSource, GLES20.GL_FRAGMENT_SHADER);
-        if (iFShader == 0) {
+        fragmentShaderId = loadShader(strFSource, GLES20.GL_FRAGMENT_SHADER);
+        if (fragmentShaderId == 0) {
             Log.d("Load Program", "Fragment Shader Failed");
             return 0;
         }
 
-        iProgramId = GLES20.glCreateProgram();
-
-        GLES20.glAttachShader(iProgramId, iVShader);
-        GLES20.glAttachShader(iProgramId, iFShader);
-
-        GLES20.glLinkProgram(iProgramId);
-
-        GLES20.glGetProgramiv(iProgramId, GLES20.GL_LINK_STATUS, link, 0);
-        if (link[0] <= 0) {
-            Log.d("Load Program", "Linking Failed");
-            GLES20.glDeleteProgram(iProgramId);
+        programObjectId = GLES20.glCreateProgram();
+        if (programObjectId == 0) {
             return 0;
         }
-        return iProgramId;
+        // 附上着色器
+        GLES20.glAttachShader(programObjectId, vertexShaderId);
+        GLES20.glAttachShader(programObjectId, fragmentShaderId);
+        // 将着色器链接起来
+        GLES20.glLinkProgram(programObjectId);
+
+        GLES20.glGetProgramiv(programObjectId, GLES20.GL_LINK_STATUS, link, 0);
+        if (link[0] <= 0) {
+            Log.d("Load Program", "Linking Failed");
+            GLES20.glDeleteProgram(programObjectId);
+            return 0;
+        }
+        return programObjectId;
     }
 
+    /**
+     * 验证opengl 是否可用
+     * @param programObjectId 程序id
+     * @return 是否可用
+     */
+    public static boolean validateProgram(int programObjectId) {
+        GLES20.glValidateProgram(programObjectId);
+
+        int[] validateStatus = new int[1];
+        GLES20.glGetProgramiv(programObjectId, GLES20.GL_VALIDATE_STATUS, validateStatus, 0);
+        return validateStatus[0] != 0;
+    }
 
 }
