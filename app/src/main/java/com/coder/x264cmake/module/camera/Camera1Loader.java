@@ -3,12 +3,15 @@ package com.coder.x264cmake.module.camera;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.view.Surface;
 import android.view.WindowManager;
 
 import com.coder.x264cmake.utils.LogUtils;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -84,7 +87,6 @@ public class Camera1Loader extends ICameraLoader {
     }
 
 
-
     private void setUpCamera() {
         cameraId = getCurrentCameraId();
         try {
@@ -110,6 +112,13 @@ public class Camera1Loader extends ICameraLoader {
                 }
             }
         });
+
+//        SurfaceTexture surfaceTexture = new SurfaceTexture(1);
+//        try {
+//            cameraInstance.setPreviewTexture(surfaceTexture);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         cameraInstance.startPreview();
     }
@@ -156,6 +165,44 @@ public class Camera1Loader extends ICameraLoader {
         }
     }
 
+    private void setPreviewSize(Camera.Parameters parameters) {
+        List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+        List<Camera.Size> sizes = new ArrayList<>();
+        int widthRatio;
+        int heightRatio;
+        switch (previewType) {
+            case CAMERA_PREVIEW_16To9:
+                widthRatio = 16;
+                heightRatio = 9;
+                break;
+            case CAMERA_PREVIEW_4To3:
+                widthRatio = 4;
+                heightRatio = 3;
+                break;
+            case CAMERA_PREVIEW_1To1:
+                widthRatio = 1;
+                heightRatio = 1;
+                break;
+            default:
+                return;
+        }
+
+        for (Camera.Size previewSize : previewSizes) {
+            // 满足设置比例
+            if (previewSize.width * heightRatio == previewSize.height * widthRatio) {
+                if ((previewSize.width >= widthRange[0] && previewSize.width <= widthRange[1]) &&
+                        (previewSize.height >= heightRange[0] && previewSize.height <= heightRange[1])) {
+                    sizes.add(previewSize);
+                }
+//                sizes.add(previewSize);
+            }
+        }
+
+        if (sizes.size() == 0) return;
+        // 设置预览大小
+        parameters.setPreviewSize(sizes.get(0).width, sizes.get(0).height);
+
+    }
 
     public void releaseCamera() {
         if (cameraInstance != null) {

@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.coder.x264cmake.module.GLRenderer;
 
 import static android.opengl.GLSurfaceView.RENDERMODE_CONTINUOUSLY;
+import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 
 public class GLCameraActivity extends AppCompatActivity {
 
@@ -21,7 +22,7 @@ public class GLCameraActivity extends AppCompatActivity {
         mGLSurfaceView = new GLSurfaceView(this);
         mGLSurfaceView.setEGLContextClientVersion(2);
         mGLSurfaceView.setRenderer(new GLRenderer());
-        mGLSurfaceView.setRenderMode(RENDERMODE_CONTINUOUSLY);
+        mGLSurfaceView.setRenderMode(RENDERMODE_WHEN_DIRTY);
 
         setContentView(mGLSurfaceView);
     }

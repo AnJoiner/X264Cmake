@@ -15,9 +15,19 @@ import com.coder.x264cmake.BaseApplication;
 import com.coder.x264cmake.utils.DensityUtils;
 import com.coder.x264cmake.utils.LogUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CameraLoader {
+    public static final int CAMERA_PREVIEW_16To9 = 0x01;
+    public static final int CAMERA_PREVIEW_4To3 = 0x02;
+    public static final int CAMERA_PREVIEW_1To1 = 0x03;
+    // 预览格式，默认16:9
+    protected int previewType = CAMERA_PREVIEW_16To9;
+
+    protected int[] widthRange = {720, 1280};
+    protected int[] heightRange = {540, 720};
+
     // 默认后置摄像头
     public int cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
     public Camera cameraInstance = null;
@@ -65,10 +75,17 @@ public class CameraLoader {
         setPreviewFps(parameters);
         setPictureSize(parameters);
         // 将预览数据进行回调
-        if (onCameraPreCallback != null) {
-//            cameraInstance.setPreviewCallbackWithBuffer((data, camera) -> onCameraPreCallback.onCameraPreFrame(data, videoWidth, videoHeight));
-            cameraInstance.setPreviewCallback((data, camera) -> onCameraPreCallback.onCameraPreFrame(data, videoWidth, videoHeight));
-        }
+        cameraInstance.setPreviewCallback(new Camera.PreviewCallback() {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera) {
+                if (onCameraPreCallback != null) {
+                    Camera.Size size = camera.getParameters().getPreviewSize();
+                    LogUtils.d("CameraLoader===>>> width:"+size.width+", height:"+ size.height);
+                    onCameraPreCallback.onCameraPreFrame(data, size.width, size.height);
+                }
+            }
+        });
+
         cameraInstance.setParameters(parameters);
         cameraInstance.setDisplayOrientation(getRotation());
     }
@@ -166,29 +183,33 @@ public class CameraLoader {
         List<String> focusModes = parameters.getSupportedFocusModes();
         if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-        } else if (focusModes.contains(FOCUS_MODE_AUTO)) {
-            parameters.setFocusMode(FOCUS_MODE_AUTO);
+        } else if (focusModes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
+        } else if (focusModes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+        } else {
+            parameters.setFocusMode(focusModes.get(0));
         }
     }
 
-    public void setPreviewSize(Camera.Parameters parameters) {
-        List<Camera.Size> supportSizes = parameters.getSupportedPreviewSizes();
-        int surfaceWidth = DensityUtils.width();
-        int surfaceHeight = DensityUtils.height();
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Camera.Size supportSize : supportSizes) {
-            stringBuilder.append("[").append(supportSize.width).append(",").append(supportSize.height).append("]")
-                    .append(", ");
-        }
-        LogUtils.d("CameraLoader===>>> supportSize:"+ stringBuilder.toString());
-
-        Camera.Size size = getCloselyPreSize(surfaceWidth, surfaceHeight, supportSizes);
-        videoWidth = size.width;
-        videoHeight = size.height;
-//        LogUtils.d("CameraLoader===>>> width:"+videoWidth+", height:"+videoHeight);
-        parameters.setPreviewSize(size.width, size.height);
-    }
+//    public void setPreviewSize(Camera.Parameters parameters) {
+//        List<Camera.Size> supportSizes = parameters.getSupportedPreviewSizes();
+//        int surfaceWidth = DensityUtils.width();
+//        int surfaceHeight = DensityUtils.height();
+//
+//        StringBuilder stringBuilder = new StringBuilder();
+//        for (Camera.Size supportSize : supportSizes) {
+//            stringBuilder.append("[").append(supportSize.width).append(",").append(supportSize.height).append("]")
+//                    .append(", ");
+//        }
+//        LogUtils.d("CameraLoader===>>> supportSize:"+ stringBuilder.toString());
+//
+//        Camera.Size size = getCloselyPreSize(surfaceWidth, surfaceHeight, supportSizes);
+//        videoWidth = size.width;
+//        videoHeight = size.height;
+////        LogUtils.d("CameraLoader===>>> width:"+videoWidth+", height:"+videoHeight);
+//        parameters.setPreviewSize(size.width, size.height);
+//    }
 
     public void setPreviewFps(Camera.Parameters parameters){
         List<int[]> fpsRange = parameters.getSupportedPreviewFpsRange();
@@ -295,6 +316,44 @@ public class CameraLoader {
         return closestRange;
     }
 
+    private void setPreviewSize(Camera.Parameters parameters) {
+        List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+        List<Camera.Size> sizes = new ArrayList<>();
+        int widthRatio;
+        int heightRatio;
+        switch (previewType) {
+            case CAMERA_PREVIEW_16To9:
+                widthRatio = 16;
+                heightRatio = 9;
+                break;
+            case CAMERA_PREVIEW_4To3:
+                widthRatio = 4;
+                heightRatio = 3;
+                break;
+            case CAMERA_PREVIEW_1To1:
+                widthRatio = 1;
+                heightRatio = 1;
+                break;
+            default:
+                return;
+        }
+
+        for (Camera.Size previewSize : previewSizes) {
+            // 满足设置比例
+            if (previewSize.width * heightRatio == previewSize.height * widthRatio) {
+                if ((previewSize.width >= widthRange[0] && previewSize.width <= widthRange[1]) &&
+                        (previewSize.height >= heightRange[0] && previewSize.height <= heightRange[1])) {
+                    sizes.add(previewSize);
+                }
+//                sizes.add(previewSize);
+            }
+        }
+
+        if (sizes.size() == 0) return;
+        // 设置预览大小
+        parameters.setPreviewSize(sizes.get(0).width, sizes.get(0).height);
+
+    }
 
     public interface OnCameraPreCallback {
         void onCameraPreFrame(byte[] data, int width, int height);
