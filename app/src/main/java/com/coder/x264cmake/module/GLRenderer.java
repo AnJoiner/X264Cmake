@@ -106,7 +106,8 @@ public class GLRenderer implements GLSurfaceView.Renderer {
             aTxtCoordLocation = GLES20.glGetAttribLocation(program, A_TEX_COORD);
             GLES20.glEnableVertexAttribArray(aTxtCoordLocation);
             txtCoordData.position(0);
-            GLES20.glVertexAttribPointer(aTxtCoordLocation, 2, GLES20.GL_FLOAT, false, 8, txtCoordData);
+            GLES20.glVertexAttribPointer(aTxtCoordLocation, 2, GLES20.GL_FLOAT,
+                    false, 8, txtCoordData);
 
             //材质纹理初始化
             //设置纹理层
@@ -198,19 +199,4 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 //        GLES20.glDrawArrays(GLES20.GL_POINTS,9,1);
     }
 
-
-    private int createTextureID() {
-        int[] texture = new int[1];
-        GLES20.glGenTextures(1, texture, 0);
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture[0]);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_MIN_FILTER,GL10.GL_LINEAR);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
-        return texture[0];
-    }
 }

@@ -16,9 +16,10 @@ void throw_exception(JNIEnv *env, const char *exception, const char *message) {
     }
 }
 
+
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_coder_x264cmake_jni_YuvCore_nv21ToABGR(JNIEnv *env, jclass clazz, jbyteArray src,
+Java_com_coder_x264cmake_jni_YuvCore_i420ToNv21(JNIEnv *env, jclass clazz, jbyteArray src,
                                                 jbyteArray dst, jint width, jint height) {
     if (src == NULL || dst == NULL) {
         throw_exception(env, "java/lang/RuntimeException", "Src or dst byte array cannot be NULL!");
@@ -28,13 +29,12 @@ Java_com_coder_x264cmake_jni_YuvCore_nv21ToABGR(JNIEnv *env, jclass clazz, jbyte
                         "Width and height must be greater than 0!");
     }
 
-    jbyte *nv21_data = env->GetByteArrayElements(src, JNI_FALSE);
-    jbyte *abgr_data = env->GetByteArrayElements(dst, JNI_FALSE);
+    jbyte *i420_data = env->GetByteArrayElements(src, JNI_FALSE);
+    jbyte *nv21_data = env->GetByteArrayElements(dst, JNI_FALSE);
+    i420_to_nv21((char *) i420_data, (char *) nv21_data, width, height);
 
-    nv21_to_abgr((char *) nv21_data, (char *) abgr_data, width, height);
-
-    env->ReleaseByteArrayElements(src, nv21_data, 0);
-    env->ReleaseByteArrayElements(dst, abgr_data, 0);
+    env->ReleaseByteArrayElements(src, i420_data, 0);
+    env->ReleaseByteArrayElements(dst, nv21_data, 0);
 }
 
 extern "C"
@@ -81,7 +81,7 @@ Java_com_coder_x264cmake_jni_YuvCore_nv21ToI420(JNIEnv *env, jclass clazz, jbyte
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_coder_x264cmake_jni_YuvCore_i420ToNv21(JNIEnv *env, jclass clazz, jbyteArray src,
+Java_com_coder_x264cmake_jni_YuvCore_nv21ToABGR(JNIEnv *env, jclass clazz, jbyteArray src,
                                                 jbyteArray dst, jint width, jint height) {
     if (src == NULL || dst == NULL) {
         throw_exception(env, "java/lang/RuntimeException", "Src or dst byte array cannot be NULL!");
@@ -91,13 +91,59 @@ Java_com_coder_x264cmake_jni_YuvCore_i420ToNv21(JNIEnv *env, jclass clazz, jbyte
                         "Width and height must be greater than 0!");
     }
 
-    jbyte *i420_data = env->GetByteArrayElements(src, JNI_FALSE);
-    jbyte *nv21_data = env->GetByteArrayElements(dst, JNI_FALSE);
-    i420_to_nv21((char *) i420_data, (char *) nv21_data, width, height);
+    jbyte *nv21_data = env->GetByteArrayElements(src, JNI_FALSE);
+    jbyte *abgr_data = env->GetByteArrayElements(dst, JNI_FALSE);
 
-    env->ReleaseByteArrayElements(src, i420_data, 0);
-    env->ReleaseByteArrayElements(dst, nv21_data, 0);
+    nv21_to_abgr((char *) nv21_data, (char *) abgr_data, width, height);
+
+    env->ReleaseByteArrayElements(src, nv21_data, 0);
+    env->ReleaseByteArrayElements(dst, abgr_data, 0);
 }
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_coder_x264cmake_jni_YuvCore_nv21ToRGB24(JNIEnv *env, jclass clazz, jbyteArray src,
+                                                 jbyteArray dst, jint width, jint height) {
+    if (src == NULL || dst == NULL) {
+        throw_exception(env, "java/lang/RuntimeException", "Src or dst byte array cannot be NULL!");
+    }
+    if (width <= 0 || height <= 0) {
+        throw_exception(env, "java/lang/RuntimeException",
+                        "Width and height must be greater than 0!");
+    }
+
+    jbyte *nv21_data = env->GetByteArrayElements(src, JNI_FALSE);
+    jbyte *rgb24_data = env->GetByteArrayElements(dst, JNI_FALSE);
+
+    nv21_to_rgb24((char *) nv21_data, (char *) rgb24_data, width, height);
+
+    env->ReleaseByteArrayElements(src, nv21_data, 0);
+    env->ReleaseByteArrayElements(dst, rgb24_data, 0);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_coder_x264cmake_jni_YuvCore_rgb24ToI420(JNIEnv *env, jclass clazz, jbyteArray src,
+                                                 jbyteArray dst, jint width, jint height) {
+    if (src == NULL || dst == NULL) {
+        throw_exception(env, "java/lang/RuntimeException", "Src or dst byte array cannot be NULL!");
+    }
+    if (width <= 0 || height <= 0) {
+        throw_exception(env, "java/lang/RuntimeException",
+                        "Width and height must be greater than 0!");
+    }
+
+    jbyte *rgb24_data = env->GetByteArrayElements(src,JNI_FALSE);
+    jbyte *i420_data = env->GetByteArrayElements(dst,JNI_FALSE);
+
+    rgb24_to_i420((char *)rgb24_data,(char*)i420_data,width,height);
+
+    env->ReleaseByteArrayElements(src, rgb24_data, 0);
+    env->ReleaseByteArrayElements(dst, i420_data, 0);
+}
+
 
 extern "C"
 JNIEXPORT void JNICALL

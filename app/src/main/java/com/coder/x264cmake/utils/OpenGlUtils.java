@@ -125,6 +125,10 @@ public class OpenGlUtils {
             GLES20.glDeleteProgram(programObjectId);
             return 0;
         }
+        // 当链接成功，就可以删除着色器
+        GLES20.glDeleteShader(vertexShaderId);
+        GLES20.glDeleteShader(fragmentShaderId);
+
         return programObjectId;
     }
 

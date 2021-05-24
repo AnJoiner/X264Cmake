@@ -22,17 +22,28 @@ void i420_to_rgba(char *src, char *dst, int width, int height) {
 
 }
 
+
+void i420_to_nv21(char *src, char *dst, int width, int height) {
+    int src_y_size = width * height;
+    int src_u_size = src_y_size >> 2;
+    char *src_y = src;
+    char *src_u = src + src_y_size;
+    char *src_v = src + src_y_size + src_u_size;
+
+    int dst_y_size = width * height;
+    char *dst_y = dst;
+    char *dst_vu = dst + dst_y_size;
+
+    I420ToNV21((unsigned char *) src_y, width,
+               (unsigned char *) src_u, width >> 1,
+               (unsigned char *) src_v, width >> 1,
+               (unsigned char *) dst_y, width,
+               (unsigned char *) dst_vu, width,
+               width, height);
+}
+
+
 void nv21_to_abgr(char *src, char *dst, int width, int height) {
-    /**
-     * int NV21ToABGR(const uint8_t* src_y,
-               int src_stride_y,
-               const uint8_t* src_vu,
-               int src_stride_vu,
-               uint8_t* dst_abgr,
-               int dst_stride_abgr,
-               int width,
-               int height);
-     */
     int src_y_size = width * height;
     char *src_y = src;
     char *src_vu = src + src_y_size;
@@ -44,6 +55,20 @@ void nv21_to_abgr(char *src, char *dst, int width, int height) {
                (unsigned char *) dst_abgr, width * 4,
                width, height
     );
+}
+
+void nv21_to_rgb24(char *src, char *dst, int width, int height) {
+
+    int src_y_size = width * height;
+    char *src_y = src;
+    char *src_vu = src + src_y_size;
+
+    char *dst_rgb24 = dst;
+
+    NV21ToRGB24((unsigned char *) src_y, width,
+                (unsigned char *) src_vu, width,
+                (unsigned char *) dst_rgb24, width * 3,
+                width,height);
 }
 
 void nv21_to_i420(char *src, char *dst, int width, int height) {
@@ -66,21 +91,20 @@ void nv21_to_i420(char *src, char *dst, int width, int height) {
                width, height);
 }
 
-void i420_to_nv21(char *src, char *dst, int width, int height) {
-    int src_y_size = width * height;
-    int src_u_size = src_y_size >> 2;
-    char *src_y = src;
-    char *src_u = src + src_y_size;
-    char *src_v = src + src_y_size + src_u_size;
+
+void rgb24_to_i420(char *src, char *dst, int width, int height){
+    char * src_rgb24 = src;
 
     int dst_y_size = width * height;
+    int dst_u_size = dst_y_size >> 2;
     char *dst_y = dst;
-    char *dst_vu = dst + dst_y_size;
+    char *dst_u = dst + dst_y_size;
+    char *dst_v = dst + dst_y_size + dst_u_size;
 
-    I420ToNV21((unsigned char *) src_y, width,
-               (unsigned char *) src_u, width >> 1,
-               (unsigned char *) src_v, width >> 1,
-               (unsigned char *) dst_y, width,
-               (unsigned char *) dst_vu, width,
-               width, height);
+
+    RGB24ToI420((unsigned char *)src_rgb24, width *3,
+                (unsigned char *) dst_y, width,
+                (unsigned char *) dst_u, width >> 1,
+                (unsigned char *) dst_v, width >> 1,
+                width, height);
 }
