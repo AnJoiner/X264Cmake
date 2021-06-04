@@ -24,23 +24,25 @@ public class Camera1Loader extends ICameraLoader {
     public Camera cameraInstance = null;
     // 相机id
     private int cameraId = 0;
+    // 是否正在预览
+    public boolean isPreviewing = false;
 
     public Camera1Loader(Activity activity) {
         mActivity = activity;
     }
 
     @Override
-    void onPause() {
+    public void onPause() {
         releaseCamera();
     }
 
     @Override
-    void onResume(int width, int height) {
+    public void onResume(int width, int height) {
         setUpCamera();
     }
 
     @Override
-    void switchCamera() {
+    public void switchCamera() {
         if (cameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
         } else if (cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) {
@@ -51,7 +53,7 @@ public class Camera1Loader extends ICameraLoader {
     }
 
     @Override
-    int getCameraOrientation() {
+    public int getCameraOrientation() {
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         Camera.getCameraInfo(cameraId, cameraInfo);
         final int rotation = ((WindowManager) mActivity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
@@ -82,7 +84,7 @@ public class Camera1Loader extends ICameraLoader {
     }
 
     @Override
-    boolean hasMultipleCamera() {
+    public boolean hasMultipleCamera() {
         return Camera.getNumberOfCameras() > 1;
     }
 
@@ -98,6 +100,7 @@ public class Camera1Loader extends ICameraLoader {
         Camera.Parameters parameters = cameraInstance.getParameters();
         // 设置对焦
         setFocus(parameters);
+        setPreviewSize(parameters);
         // 设置预览格式为nv21
         parameters.setPreviewFormat(ImageFormat.NV21);
 
@@ -113,14 +116,10 @@ public class Camera1Loader extends ICameraLoader {
             }
         });
 
-//        SurfaceTexture surfaceTexture = new SurfaceTexture(1);
-//        try {
-//            cameraInstance.setPreviewTexture(surfaceTexture);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
+//        cameraInstance.setDisplayOrientation(getCameraOrientation());
         cameraInstance.startPreview();
+
+        isPreviewing = true;
     }
 
 
@@ -194,7 +193,6 @@ public class Camera1Loader extends ICameraLoader {
                         (previewSize.height >= heightRange[0] && previewSize.height <= heightRange[1])) {
                     sizes.add(previewSize);
                 }
-//                sizes.add(previewSize);
             }
         }
 
@@ -210,6 +208,8 @@ public class Camera1Loader extends ICameraLoader {
             cameraInstance.stopPreview();
             cameraInstance.release();
             cameraInstance = null;
+
+            isPreviewing = false;
         }
     }
 }

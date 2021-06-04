@@ -192,24 +192,24 @@ public class CameraLoader {
         }
     }
 
-//    public void setPreviewSize(Camera.Parameters parameters) {
-//        List<Camera.Size> supportSizes = parameters.getSupportedPreviewSizes();
-//        int surfaceWidth = DensityUtils.width();
-//        int surfaceHeight = DensityUtils.height();
-//
-//        StringBuilder stringBuilder = new StringBuilder();
-//        for (Camera.Size supportSize : supportSizes) {
-//            stringBuilder.append("[").append(supportSize.width).append(",").append(supportSize.height).append("]")
-//                    .append(", ");
-//        }
-//        LogUtils.d("CameraLoader===>>> supportSize:"+ stringBuilder.toString());
-//
-//        Camera.Size size = getCloselyPreSize(surfaceWidth, surfaceHeight, supportSizes);
-//        videoWidth = size.width;
-//        videoHeight = size.height;
-////        LogUtils.d("CameraLoader===>>> width:"+videoWidth+", height:"+videoHeight);
-//        parameters.setPreviewSize(size.width, size.height);
-//    }
+    public void setPreviewSize(Camera.Parameters parameters) {
+        List<Camera.Size> supportSizes = parameters.getSupportedPreviewSizes();
+        int surfaceWidth = DensityUtils.width();
+        int surfaceHeight = DensityUtils.height();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Camera.Size supportSize : supportSizes) {
+            stringBuilder.append("[").append(supportSize.width).append(",").append(supportSize.height).append("]")
+                    .append(", ");
+        }
+        LogUtils.d("CameraLoader===>>> supportSize:"+ stringBuilder.toString());
+
+        Camera.Size size = getCloselyPreSize(surfaceWidth, surfaceHeight, supportSizes);
+        videoWidth = size.width;
+        videoHeight = size.height;
+//        LogUtils.d("CameraLoader===>>> width:"+videoWidth+", height:"+videoHeight);
+        parameters.setPreviewSize(size.width, size.height);
+    }
 
     public void setPreviewFps(Camera.Parameters parameters){
         List<int[]> fpsRange = parameters.getSupportedPreviewFpsRange();
@@ -316,44 +316,44 @@ public class CameraLoader {
         return closestRange;
     }
 
-    private void setPreviewSize(Camera.Parameters parameters) {
-        List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-        List<Camera.Size> sizes = new ArrayList<>();
-        int widthRatio;
-        int heightRatio;
-        switch (previewType) {
-            case CAMERA_PREVIEW_16To9:
-                widthRatio = 16;
-                heightRatio = 9;
-                break;
-            case CAMERA_PREVIEW_4To3:
-                widthRatio = 4;
-                heightRatio = 3;
-                break;
-            case CAMERA_PREVIEW_1To1:
-                widthRatio = 1;
-                heightRatio = 1;
-                break;
-            default:
-                return;
-        }
-
-        for (Camera.Size previewSize : previewSizes) {
-            // 满足设置比例
-            if (previewSize.width * heightRatio == previewSize.height * widthRatio) {
-                if ((previewSize.width >= widthRange[0] && previewSize.width <= widthRange[1]) &&
-                        (previewSize.height >= heightRange[0] && previewSize.height <= heightRange[1])) {
-                    sizes.add(previewSize);
-                }
-//                sizes.add(previewSize);
-            }
-        }
-
-        if (sizes.size() == 0) return;
-        // 设置预览大小
-        parameters.setPreviewSize(sizes.get(0).width, sizes.get(0).height);
-
-    }
+//    private void setPreviewSize(Camera.Parameters parameters) {
+//        List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+//        List<Camera.Size> sizes = new ArrayList<>();
+//        int widthRatio;
+//        int heightRatio;
+//        switch (previewType) {
+//            case CAMERA_PREVIEW_16To9:
+//                widthRatio = 16;
+//                heightRatio = 9;
+//                break;
+//            case CAMERA_PREVIEW_4To3:
+//                widthRatio = 4;
+//                heightRatio = 3;
+//                break;
+//            case CAMERA_PREVIEW_1To1:
+//                widthRatio = 1;
+//                heightRatio = 1;
+//                break;
+//            default:
+//                return;
+//        }
+//
+//        for (Camera.Size previewSize : previewSizes) {
+//            // 满足设置比例
+//            if (previewSize.width * heightRatio == previewSize.height * widthRatio) {
+//                if ((previewSize.width >= widthRange[0] && previewSize.width <= widthRange[1]) &&
+//                        (previewSize.height >= heightRange[0] && previewSize.height <= heightRange[1])) {
+//                    sizes.add(previewSize);
+//                }
+////                sizes.add(previewSize);
+//            }
+//        }
+//
+//        if (sizes.size() == 0) return;
+//        // 设置预览大小
+//        parameters.setPreviewSize(sizes.get(0).width, sizes.get(0).height);
+//
+//    }
 
     public interface OnCameraPreCallback {
         void onCameraPreFrame(byte[] data, int width, int height);

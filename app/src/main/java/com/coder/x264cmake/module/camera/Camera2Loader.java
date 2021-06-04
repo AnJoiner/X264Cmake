@@ -56,19 +56,19 @@ public class Camera2Loader extends ICameraLoader {
     }
 
     @Override
-    void onResume(int width, int height) {
+    public void onResume(int width, int height) {
         viewWidth = width;
         viewHeight = height;
         setUpCamera();
     }
 
     @Override
-    void onPause() {
+    public void onPause() {
         releaseCamera();
     }
 
     @Override
-    void switchCamera() {
+    public void switchCamera() {
         if (cameraFacing == CameraCharacteristics.LENS_FACING_BACK) {
             cameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
         } else if (cameraFacing == CameraCharacteristics.LENS_FACING_FRONT) {
@@ -79,7 +79,7 @@ public class Camera2Loader extends ICameraLoader {
     }
 
     @Override
-    int getCameraOrientation() {
+    public int getCameraOrientation() {
         final int rotation = ((WindowManager) mActivity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
@@ -116,7 +116,7 @@ public class Camera2Loader extends ICameraLoader {
     }
 
     @Override
-    boolean hasMultipleCamera() {
+    public boolean hasMultipleCamera() {
         try {
             return cameraManager.getCameraIdList().length > 1;
         } catch (CameraAccessException e) {

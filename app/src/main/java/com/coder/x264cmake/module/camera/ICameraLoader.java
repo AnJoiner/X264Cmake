@@ -13,15 +13,15 @@ public abstract class ICameraLoader {
 
     protected OnCameraPreCallback mOnCameraPreCallback;
 
-    abstract void onResume(int width, int height);
+    public abstract void onResume(int width, int height);
 
-    abstract void onPause();
+    public abstract void onPause();
 
-    abstract void switchCamera();
+    public abstract void switchCamera();
 
-    abstract int getCameraOrientation();
+    public abstract int getCameraOrientation();
 
-    abstract boolean hasMultipleCamera();
+    public abstract boolean hasMultipleCamera();
 
 
     public interface OnCameraPreCallback {
