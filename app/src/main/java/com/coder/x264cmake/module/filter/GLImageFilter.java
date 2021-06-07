@@ -5,6 +5,7 @@ import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
+import android.opengl.Matrix;
 import android.util.Log;
 
 import com.coder.x264cmake.utils.LogUtils;
@@ -23,11 +24,14 @@ public class GLImageFilter {
             "attribute vec4 position;\n" +
             "attribute vec2 inputTextureCoordinate;\n" +
             "varying vec2 textureCoordinate;\n" +
+            "uniform mat4 u_matrix;\n" +
             "void main()\n" +
             "{\n" +
             "    textureCoordinate = inputTextureCoordinate;\n" +
-            "    gl_Position = position;\n" +
+            "    gl_Position = u_matrix * position;\n" +
             "}";
+    // (u_matrix * inputTextureCoordinate).xy;
+    // u_matrix * position;
 
     // oes片元着色器
     public static final String TexOES_FRAGMENT_SHADER = "" +
@@ -48,65 +52,68 @@ public class GLImageFilter {
             + "void main() {\n"
             + "  gl_FragColor = texture2D( inputImageTexture, textureCoordinate );\n" + "}";
 
+    public static final String VERTEX_UNIFORM_MAT = "u_matrix";
     public static final String VERTEX_POSITION = "position";
     public static final String VERTEX_TEXCOORD = "inputTextureCoordinate";
     public static final String FRAG_UNIFORM_TEX = "inputImageTexture";
 
     // 材质顶点坐标
     private final float vertices[] = {
-            -1, -1,
-            -1, 1,
-            1, -1,
-            1, 1};
+            -1.0f, -1.0f,
+            1.0f, -1.0f,
+            -1.0f, 1.0f,
+            1.0f, 1.0f};
     // oes纹理坐标
     private final float texCoordOES[] = {
-            0, 1,
-            0, 0,
-            1, 1,
-            1, 0};
-    // tex 2d纹理坐标
-    private final float texCoord2D[] = {
-            0, 0,
-            0, 1,
-            1, 0,
-            1, 1};
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f};
+
     // gl程序id
     protected int glProgramId;
     // 顶点着色器位置
     protected int glAttribPosition;
     // 顶点着色器传入材质坐标
     protected int glAttribTexcoord;
+    // 矩阵变换
+    protected int glUniformMatrix;
     // 片元着色器纹理
     protected int glUniformTexture;
     private SurfaceTexture surfaceTexture;
     // 分配缓存空间
-    private FloatBuffer vert, texOES, tex2D;
+    private FloatBuffer vert, texOES;
     // 纹理id
     private int[] textures;
+    // 变换操作
+    private float[] matrix = new float[16];
 
     public GLImageFilter() {
-        int bytes = vertices.length * Float.SIZE / Byte.SIZE;
-        vert = ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        texOES = ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder()).asFloatBuffer();
-//        tex2D = ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        vert.put(vertices).position(0);
-        texOES.put(texCoordOES).position(0);
-//        tex2D.put(texCoord2D).position(0);
+        vert = ByteBuffer.allocateDirect(vertices.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        vert.put(vertices);
+        vert.position(0);
+
+        texOES = ByteBuffer.allocateDirect(texCoordOES.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        texOES.put(texCoordOES);
+        texOES.position(0);
     }
 
-    public SurfaceTexture onCreate() {
+    public SurfaceTexture createSurfaceTexture() {
+        createTextureOesID();
+        surfaceTexture = new SurfaceTexture(textures[0]);
+        return surfaceTexture;
+    }
+
+
+    public void setUp(){
         glProgramId = OpenGlUtils.loadProgram(VERTEX_SHADER, TexOES_FRAGMENT_SHADER);
         boolean isValidate = OpenGlUtils.validateProgram(glProgramId);
         if (isValidate) {
             glAttribPosition = GLES20.glGetAttribLocation(glProgramId, VERTEX_POSITION);
             glAttribTexcoord = GLES20.glGetAttribLocation(glProgramId, VERTEX_TEXCOORD);
             glUniformTexture = GLES20.glGetUniformLocation(glProgramId, FRAG_UNIFORM_TEX);
-
-
-            createTextureOesID();
-            surfaceTexture = new SurfaceTexture(textures[0]);
+            glUniformMatrix = GLES20.glGetUniformLocation(glProgramId, VERTEX_UNIFORM_MAT);
         }
-        return surfaceTexture;
     }
 
 
@@ -124,6 +131,11 @@ public class GLImageFilter {
         }
     }
 
+    public void rotate(){
+        Matrix.setIdentityM(matrix, 0);
+        Matrix.rotateM(matrix,0,180F,0F,1F,0F);
+        Matrix.rotateM(matrix,0,270,0F,0F,1F);
+    }
     /**
      * 创建oes纹理id
      *
@@ -133,10 +145,14 @@ public class GLImageFilter {
         textures = new int[1];
         GLES20.glGenTextures(1, textures, 0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0]);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
     }
 
     /**
@@ -145,17 +161,30 @@ public class GLImageFilter {
     public void drawTexture() {
         GLES20.glUseProgram(glProgramId);
 
-        GLES20.glVertexAttribPointer(glAttribPosition, 2, GLES20.GL_FLOAT, false, 4 * 2, vert);
-        GLES20.glVertexAttribPointer(glAttribTexcoord, 2, GLES20.GL_FLOAT, false, 4 * 2, texOES);
-
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, glUniformTexture);
-        GLES20.glUniform1i(GLES20.glGetUniformLocation(glProgramId, FRAG_UNIFORM_TEX), 0);
+//        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, glUniformTexture);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, glUniformTexture);
+        GLES20.glUniform1i(glUniformTexture, 0);
+        // 矩阵变换
+        GLES20.glUniformMatrix4fv(glUniformMatrix, 1, false, matrix, 0);
 
-//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, 2, GLES20.GL_UNSIGNED_SHORT, 4 * 2);
+        vert.clear();
+        vert.put(vertices).position(0);
+        GLES20.glVertexAttribPointer(glAttribPosition, 2, GLES20.GL_FLOAT, false, 4*2, vert);
+        GLES20.glEnableVertexAttribArray(glAttribPosition);
+
+        texOES.clear();
+        texOES.put(texCoordOES).position(0);
+        GLES20.glVertexAttribPointer(glAttribTexcoord, 2, GLES20.GL_FLOAT, false, 4*2, texOES);
+        GLES20.glEnableVertexAttribArray(glAttribTexcoord);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-        GLES20.glFlush();
+
+        GLES20.glDisableVertexAttribArray(glAttribPosition);
+        GLES20.glDisableVertexAttribArray(glAttribTexcoord);
+
+//        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
     }
 
 }

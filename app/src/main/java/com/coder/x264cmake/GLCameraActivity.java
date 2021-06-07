@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.coder.x264cmake.module.GLRenderer;
 import com.coder.x264cmake.module.camera.Camera1Loader;
+import com.coder.x264cmake.module.camera.CameraLoader;
 import com.coder.x264cmake.module.filter.GLImageFilter;
 
 import java.io.IOException;
@@ -20,14 +21,29 @@ public class GLCameraActivity extends AppCompatActivity {
     private GLSurfaceView mGLSurfaceView;
     private GLImageFilter mGLImageFilter;
     private GLRenderer glRenderer;
-    private Camera1Loader mCamera1Loader;
+    //    private Camera1Loader mCamera1Loader;
+    private CameraLoader mCameraLoader;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mCamera1Loader = new Camera1Loader(this);
+        setContentView(R.layout.activity_gl_camera);
 
-        mGLSurfaceView = new GLSurfaceView(this);
+        init();
+    }
+
+    private void init() {
+        initView();
+        initData();
+    }
+
+    private void initView() {
+        mGLSurfaceView = findViewById(R.id.camera_surface);
+    }
+
+    private void initData() {
+        mCameraLoader = new CameraLoader();
+
         mGLSurfaceView.setEGLContextClientVersion(2);
         mGLImageFilter = new GLImageFilter();
 
@@ -37,34 +53,34 @@ public class GLCameraActivity extends AppCompatActivity {
             @Override
             public void onSurfaceCreated(SurfaceTexture surfaceTexture) {
                 try {
-                    mCamera1Loader.cameraInstance.stopPreview();
-                    mCamera1Loader.cameraInstance.setPreviewTexture(surfaceTexture);
-                    mCamera1Loader.cameraInstance.startPreview();
+                    mCameraLoader.setUpCamera();
+                    mCameraLoader.cameraInstance.setPreviewTexture(surfaceTexture);
+                    mCameraLoader.cameraInstance.startPreview();
+//                    mCamera1Loader.cameraInstance.stopPreview();
+//                    mCamera1Loader.cameraInstance.setPreviewTexture(surfaceTexture);
+//                    mCamera1Loader.cameraInstance.startPreview();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
-//        glRenderer.setCameraLoader(mCamera1Loader);
 
         mGLSurfaceView.setRenderer(glRenderer);
         mGLSurfaceView.setRenderMode(RENDERMODE_WHEN_DIRTY);
-
-        setContentView(mGLSurfaceView);
-
     }
-
 
     @Override
     protected void onResume() {
         super.onResume();
-        mCamera1Loader.onResume(mGLSurfaceView.getWidth(),mGLSurfaceView.getHeight());
+        mGLSurfaceView.onResume();
+//        mCamera1Loader.onResume(mGLSurfaceView.getWidth(),mGLSurfaceView.getHeight());
     }
 
     @Override
     protected void onPause() {
-        mCamera1Loader.onPause();
+        mCameraLoader.releaseCamera();
         super.onPause();
+        mGLSurfaceView.onPause();
     }
 
     @Override

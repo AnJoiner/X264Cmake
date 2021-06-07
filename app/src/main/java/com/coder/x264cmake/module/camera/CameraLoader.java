@@ -87,7 +87,7 @@ public class CameraLoader {
         });
 
         cameraInstance.setParameters(parameters);
-        cameraInstance.setDisplayOrientation(getRotation());
+//        cameraInstance.setDisplayOrientation(getRotation());
     }
 
     public void releaseCamera() {

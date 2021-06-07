@@ -4,6 +4,7 @@ package com.coder.x264cmake.module;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 
 import com.coder.x264cmake.module.filter.GLImageFilter;
 
@@ -22,8 +23,8 @@ public class GLRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
     private int height = 1280;
 
     public SurfaceTexture surfaceTexture;
-
     private OnSurfaceListener mOnSurfaceListener;
+
 
     public GLRenderer(GLSurfaceView gLSurfaceView) {
         this.gLSurfaceView = gLSurfaceView;
@@ -40,22 +41,27 @@ public class GLRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        surfaceTexture = gLImageFilter.onCreate();
+        // 建立纹理
+        surfaceTexture = gLImageFilter.createSurfaceTexture();
+        // 设置纹理监听
         surfaceTexture.setOnFrameAvailableListener(this);
-
+        // 回调创建的纹理与camera关联
         if (mOnSurfaceListener != null) {
             mOnSurfaceListener.onSurfaceCreated(surfaceTexture);
         }
+        // 建立滤镜数据
+        gLImageFilter.setUp();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
+        gLImageFilter.rotate();
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        GLES20.glClearColor(0, 0, 0, 0);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         if (surfaceTexture != null) {
