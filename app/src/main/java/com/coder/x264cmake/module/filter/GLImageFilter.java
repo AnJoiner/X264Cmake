@@ -4,7 +4,6 @@ package com.coder.x264cmake.module.filter;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
-import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
@@ -30,8 +29,6 @@ public class GLImageFilter {
             "    textureCoordinate = inputTextureCoordinate;\n" +
             "    gl_Position = u_matrix * position;\n" +
             "}";
-    // (u_matrix * inputTextureCoordinate).xy;
-    // u_matrix * position;
 
     // oes片元着色器
     public static final String TexOES_FRAGMENT_SHADER = "" +
@@ -87,6 +84,10 @@ public class GLImageFilter {
     private int[] textures;
     // 变换操作
     private float[] matrix = new float[16];
+    // 离屏渲染
+    private int[] texFBO = {0}, texDraw = {0};
+    private int[] FBO = {0};
+    protected int mFBOWidth = -1, mFBOHeight = -1;
 
     public GLImageFilter() {
         vert = ByteBuffer.allocateDirect(vertices.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -99,7 +100,8 @@ public class GLImageFilter {
     }
 
     public SurfaceTexture createSurfaceTexture() {
-        createTextureOesID();
+        createTextureOES();
+//        createTexture2D();
         surfaceTexture = new SurfaceTexture(textures[0]);
         return surfaceTexture;
     }
@@ -143,18 +145,67 @@ public class GLImageFilter {
      *
      * @return 纹理id
      */
-    private void createTextureOesID() {
+    private void createTextureOES() {
         textures = new int[1];
         GLES20.glGenTextures(1, textures, 0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0]);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+    }
+
+    private void createTexture2D(){
+        textures = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+    }
+
+    private void deleteFBO(){
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+        GLES20.glDeleteFramebuffers(1, FBO, 0);
+    }
+    /**
+     * 创建离屏渲染 fbo
+     */
+    private void createFBO(int width,int height){
+        deleteFBO();
+
+        GLES20.glGenTextures(1, texDraw, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texDraw[0]);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+
+        GLES20.glGenTextures(1, texFBO, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texFBO[0]);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+
+        //int hFBO;
+        GLES20.glGenFramebuffers(1, FBO, 0);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, FBO[0]);
+        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, texFBO[0], 0);
+
+        int fboStatus = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
+        if (fboStatus != GLES20.GL_FRAMEBUFFER_COMPLETE){
+            LogUtils.e("initFBO failed, status: " + fboStatus);
+        }
+
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
+        mFBOWidth  = width;
+        mFBOHeight = height;
     }
 
     /**
