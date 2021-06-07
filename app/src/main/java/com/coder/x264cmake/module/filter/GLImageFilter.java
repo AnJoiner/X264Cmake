@@ -133,7 +133,9 @@ public class GLImageFilter {
 
     public void rotate(){
         Matrix.setIdentityM(matrix, 0);
+        // 对称左右翻转
         Matrix.rotateM(matrix,0,180F,0F,1F,0F);
+        // 旋转270
         Matrix.rotateM(matrix,0,270,0F,0F,1F);
     }
     /**
