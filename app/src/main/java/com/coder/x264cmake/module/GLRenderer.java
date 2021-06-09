@@ -7,13 +7,13 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
 import com.coder.x264cmake.module.filter.GLImageFilter;
+import com.coder.x264cmake.utils.LogUtils;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 
 public class GLRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
-
 
     private GLSurfaceView gLSurfaceView;
     // 滤镜效果
@@ -41,8 +41,9 @@ public class GLRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        LogUtils.e("onSurfaceCreated === >>>>" + gLSurfaceView.getWidth() + "x" + gLSurfaceView.getHeight());
         // 建立纹理
-        surfaceTexture = gLImageFilter.createSurfaceTexture();
+        surfaceTexture = gLImageFilter.createSurfaceTexture(gLSurfaceView.getWidth(),gLSurfaceView.getHeight());
         // 设置纹理监听
         surfaceTexture.setOnFrameAvailableListener(this);
         // 回调创建的纹理与camera关联

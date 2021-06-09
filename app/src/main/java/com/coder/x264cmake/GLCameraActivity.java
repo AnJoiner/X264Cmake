@@ -3,6 +3,7 @@ package com.coder.x264cmake;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.view.Window;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import com.coder.x264cmake.module.GLRenderer;
 import com.coder.x264cmake.module.camera.Camera1Loader;
 import com.coder.x264cmake.module.camera.CameraLoader;
 import com.coder.x264cmake.module.filter.GLImageFilter;
+import com.coder.x264cmake.utils.LogUtils;
 
 import java.io.IOException;
 
@@ -27,6 +29,7 @@ public class GLCameraActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_gl_camera);
 
         init();
