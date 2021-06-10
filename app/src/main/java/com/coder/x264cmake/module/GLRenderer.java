@@ -43,7 +43,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         LogUtils.e("onSurfaceCreated === >>>>" + gLSurfaceView.getWidth() + "x" + gLSurfaceView.getHeight());
         // 建立纹理
-        surfaceTexture = gLImageFilter.createSurfaceTexture(gLSurfaceView.getWidth(),gLSurfaceView.getHeight());
+        surfaceTexture = gLImageFilter.createSurfaceTexture();
         // 设置纹理监听
         surfaceTexture.setOnFrameAvailableListener(this);
         // 回调创建的纹理与camera关联
@@ -52,6 +52,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
         }
         // 建立滤镜数据
         gLImageFilter.setUp();
+        gLImageFilter.createFrameBuffer(gLSurfaceView.getWidth(), gLSurfaceView.getHeight());
     }
 
     @Override
