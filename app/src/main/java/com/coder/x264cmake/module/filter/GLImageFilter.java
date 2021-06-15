@@ -224,7 +224,7 @@ public class GLImageFilter {
         // 使用中间自定义fbo
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, FBO[0]);
         drawOES();
-        drawTexture2D();
+//        drawTexture2D();
         // 切换回默认fbo
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
     }
