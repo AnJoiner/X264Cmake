@@ -29,7 +29,7 @@ public class CameraLoader {
     protected int[] heightRange = {540, 720};
 
     // 默认后置摄像头
-    public int cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
+    public int cameraFacing = Camera.CameraInfo.CAMERA_FACING_FRONT;
     public Camera cameraInstance = null;
     private int cameraId = 0;
 
