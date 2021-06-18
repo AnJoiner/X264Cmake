@@ -11,6 +11,7 @@ import java.nio.IntBuffer;
 
 public class OpenGlUtils {
 
+    public static final int NO_GL = -1;
     public static final int NO_TEXTURE = -1;
 
     public static int loadTexture(final Bitmap img, final int usedTexId) {
