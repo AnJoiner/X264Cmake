@@ -216,9 +216,10 @@ public class GLImageBaseFilter {
      */
     protected void drawFrame(int textureId, FloatBuffer vertexFloatBuffer, FloatBuffer textureFloatBuffer) {
         onUseProgram();
-        onExtra();
+        onPreExtra();
         onBindTexture(textureId);
         onDraw(vertexFloatBuffer, textureFloatBuffer);
+        onPostExtra();
         onUnBindTexture();
     }
 
@@ -240,7 +241,7 @@ public class GLImageBaseFilter {
     /**
      * 在绘制之前的预处理
      */
-    protected void onExtra() {
+    protected void onPreExtra() {
         GLES20.glUniformMatrix4fv(mGLUniformMatrix, 1, false, matrix, 0);
     }
 
@@ -284,6 +285,13 @@ public class GLImageBaseFilter {
      * 在绘制之后
      */
     protected void onPostDraw() {
+
+    }
+
+    /**
+     * 在绘制之后处理
+     */
+    protected void onPostExtra() {
 
     }
 
