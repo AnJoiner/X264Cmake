@@ -58,7 +58,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
-        gLImageFilter.rotate();
     }
 
     @Override

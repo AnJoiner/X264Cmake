@@ -8,6 +8,7 @@ import android.opengl.Matrix;
 import android.util.Log;
 
 import com.coder.x264cmake.utils.LogUtils;
+import com.coder.x264cmake.utils.MatrixUtils;
 import com.coder.x264cmake.utils.OpenGlUtils;
 
 import java.nio.ByteBuffer;
@@ -254,13 +255,6 @@ public class GLImageFilter {
         }
     }
 
-    public void rotate() {
-        Matrix.setIdentityM(matrix, 0);
-        // 对称左右翻转
-//        Matrix.rotateM(matrix, 0, 180F, 0F, 1F, 0F);
-//         旋转270
-//        Matrix.rotateM(matrix, 0, 270F, 0F, 0F, 1F);
-    }
 
     /**
      * 创建oes纹理id
@@ -307,11 +301,16 @@ public class GLImageFilter {
 
 
     public void drawTexture() {
+        Matrix.setIdentityM(matrix, 0);
         // 使用中间自定义fbo
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, FBO[0]);
         drawOES();
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 
+        // 前置摄像头
+        MatrixUtils.flip(matrix,true,false);
+        // 后置摄像头
+//        MatrixUtils.rotate(matrix,180);
         drawTexture2D();
     }
 
