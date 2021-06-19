@@ -68,6 +68,51 @@ public class OpenGlUtils {
         return textures[0];
     }
 
+
+    /**
+     * 创建FBO
+     * @param frameBufferTexture 2d绘制纹理
+     * @param frameBuffer 帧缓冲
+     * @param renderBuffer 渲染缓冲
+     * @param width 帧宽
+     * @param height 帧高
+     */
+    public static void createFrameBuffer(int[] frameBufferTexture, int[] frameBuffer, int[] renderBuffer,int width,  int height){
+        GLES20.glGenTextures(1, frameBufferTexture, 0);
+        // 绑定2d纹理
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, frameBufferTexture[0]);
+        // 申请2d纹理的存储空间
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+        // 设置2d参数
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+
+        // 创建FBO，帧缓冲对象
+        GLES20.glGenFramebuffers(1, frameBuffer, 0);
+        // 绑定FBO
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer[0]);
+
+        // 创建RBO，渲染缓冲对象
+        GLES20.glGenRenderbuffers(1, renderBuffer, 0);
+        // 绑定RBO
+        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBuffer[0]);
+        // 申请渲染数据存储空间
+        GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, width, height);
+        // 将2d纹理附着到FBO上
+        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, frameBufferTexture[0], 0);
+        // 将渲染缓冲附着到FBO上
+        GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT, GLES20.GL_RENDERBUFFER, renderBuffer[0]);
+
+        int fboStatus = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
+        if (fboStatus != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+            LogUtils.e("initFBO failed, status:" + fboStatus);
+            return ;
+        }
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+    }
+
     public static int loadTextureAsBitmap(final IntBuffer data, final Size size, final int usedTexId) {
         Bitmap bitmap = Bitmap
                 .createBitmap(data.array(), size.width, size.height, Config.ARGB_8888);

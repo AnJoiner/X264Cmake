@@ -8,7 +8,6 @@ import com.coder.x264cmake.utils.OpenGlUtils;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.util.Arrays;
 
 /**
  * 滤镜基础类
@@ -66,22 +65,21 @@ public class GLImageBaseFilter {
     protected int mImageWidth;
     protected int mImageHeight;
 
-    // FBO的宽高
-    protected int mFBOWidth = -1;
-    protected int mFBOHeight = -1;
-
     // 显示输出的宽高
     protected int mDisplayWidth;
     protected int mDisplayHeight;
 
+    // FBO的宽高
+    protected int mFBOWidth = -1;
+    protected int mFBOHeight = -1;
+
     // 帧缓冲对象id和纹理id
-    protected int[] mFrameBuffer = {0};
-    protected int[] mFrameBufferTexture = {0};
+    protected int[] mFrameBuffer;
+    protected int[] mFrameBufferTexture;
     // 渲染缓存id
-    protected int[] mRenderBuffer = {0};
+    protected int[] mRenderBuffer;
     // 是否初始化GL
     protected boolean isInitializedGL;
-
     // 矩阵
     private float[] matrix;
 
@@ -115,7 +113,7 @@ public class GLImageBaseFilter {
         mVertexShader = vertexShader;
         mFragmentShader = fragmentShader;
 
-        initFloatBuffer();
+//        initFloatBuffer();
         initGLProgram();
     }
 
@@ -179,13 +177,41 @@ public class GLImageBaseFilter {
         mImageHeight = height;
     }
 
-
     /**
-     * 显示视图发生变化
+     *  显示视图发生变化
      */
     public void onDisplaySizeChanged(int width, int height) {
         mDisplayWidth = width;
         mDisplayHeight = height;
+    }
+
+
+    /**
+     * 常用为Texture 2d 或者 oes
+     * @return 纹理类型
+     */
+    public int getTextureType() {
+        return GLES20.GL_TEXTURE_2D;
+    }
+
+
+    /**
+     * 创建FBO
+     */
+    public void onCreateFrameBuffer(int width, int height){
+        // 创建之前如果存在先进行销毁
+        if (mFrameBuffer!=null &&(mFBOWidth!= width || mFBOHeight!=height)){
+            onDestroyFrameBuffer();
+        }
+        // 正式开始创建
+        if (mFrameBuffer == null || mFrameBufferTexture == null){
+            mFBOWidth = width;
+            mFBOHeight = height;
+            mFrameBufferTexture = new int[1];
+            mFrameBuffer = new int[1];
+            mRenderBuffer = new int[1];
+            OpenGlUtils.createFrameBuffer(mFrameBufferTexture,mFrameBuffer,mRenderBuffer, width, height);
+        }
     }
 
     /**
@@ -194,18 +220,71 @@ public class GLImageBaseFilter {
      * @param textureId          纹理id
      * @param vertexFloatBuffer  顶点坐标缓冲区
      * @param textureFloatBuffer 纹理坐标缓冲区
+     * @param isFrameBuffer 是否是帧缓冲渲染
      */
-    public void onDrawFrame(int textureId, FloatBuffer vertexFloatBuffer, FloatBuffer textureFloatBuffer) {
+    public void onDrawFrame(int textureId, FloatBuffer vertexFloatBuffer, FloatBuffer textureFloatBuffer, boolean isFrameBuffer) {
         // 未初始GL程序
         if (!isInitializedGL || textureId == OpenGlUtils.NO_TEXTURE) {
             LogUtils.e("Failed to draw frame.");
             return;
         }
-        // 设置窗口大小
-        GLES20.glViewport(0, 0, mDisplayWidth, mDisplayHeight);
-        onClear();
+        if (!isFrameBuffer){
+            // 设置窗口大小
+            GLES20.glViewport(0, 0, mDisplayWidth, mDisplayHeight);
+            onClear();
+        }
 
+        // 如果FrameBuffer离屏渲染就需绑定FrameBuffer
+        if (isFrameBuffer){
+            onBindFrameBuffer();
+        }
+
+        // 绘制
         drawFrame(textureId,vertexFloatBuffer,textureFloatBuffer);
+
+        // 如果FrameBuffer离屏渲染就需解绑FrameBuffer
+        if (isFrameBuffer){
+            onUnBindFrameBuffer();
+        }
+    }
+
+
+    /**
+     * 销毁帧缓冲
+     */
+    public void onDestroyFrameBuffer(){
+        // 销毁帧缓冲纹理
+        if (mFrameBufferTexture!=null){
+            GLES20.glDeleteTextures(1,mFrameBufferTexture,0);
+            mFrameBufferTexture = null;
+        }
+        // 销毁渲染缓冲
+        if (mRenderBuffer != null){
+            GLES20.glDeleteRenderbuffers(1,mRenderBuffer,0);
+            mRenderBuffer = null;
+        }
+        // 销毁帧缓冲
+        if (mFrameBuffer != null){
+            GLES20.glDeleteFramebuffers(1,mFrameBuffer,0);
+            mFrameBuffer = null;
+        }
+        // 重置宽高
+        mFBOWidth = -1;
+        mFBOHeight = -1;
+    }
+
+    /**
+     * 绑定FBO
+     */
+    protected void onBindFrameBuffer(){
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
+    }
+
+    /**
+     * 解绑FBO
+     */
+    protected void onUnBindFrameBuffer(){
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
     }
 
 
@@ -250,7 +329,7 @@ public class GLImageBaseFilter {
      */
     protected void onBindTexture(int textureId) {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
+        GLES20.glBindTexture(getTextureType(), textureId);
         GLES20.glUniform1i(mGLUniformTexture, 0);
     }
 
@@ -299,6 +378,6 @@ public class GLImageBaseFilter {
      * 解除纹理绑定
      */
     protected void onUnBindTexture() {
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, GLES20.GL_NONE);
+        GLES20.glBindTexture(getTextureType(), GLES20.GL_NONE);
     }
 }
