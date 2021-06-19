@@ -8,8 +8,6 @@ import com.coder.x264cmake.utils.LogUtils;
 import com.coder.x264cmake.utils.OpenGlUtils;
 import com.coder.x264cmake.utils.TextureCoordinateUtils;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.LinkedList;
@@ -93,7 +91,7 @@ public class GLImageBaseFilter {
         mVertexShader = vertexShader;
         mFragmentShader = fragmentShader;
         mRunOnDraw = new LinkedList<>();
-//        initFloatBuffer();
+
         initGLProgram();
     }
 
@@ -102,7 +100,7 @@ public class GLImageBaseFilter {
      * 初始化openGL程序
      */
     public void initGLProgram() {
-        mGLProgramId = OpenGlUtils.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        mGLProgramId = OpenGlUtils.loadProgram(mVertexShader, mFragmentShader);
         boolean isValidate = OpenGlUtils.validateProgram(mGLProgramId);
         if (isValidate) {
             mGLVertexPosition = GLES20.glGetAttribLocation(mGLProgramId, VERTEX_POSITION);
@@ -171,8 +169,13 @@ public class GLImageBaseFilter {
      */
     public int onDrawFrame(int textureId, FloatBuffer vertexFloatBuffer, FloatBuffer textureFloatBuffer, boolean isFrameBuffer) {
         // 未初始GL程序
-        if (!isInitializedGL || textureId == OpenGlUtils.NO_TEXTURE) {
-            LogUtils.e("Failed to draw frame.");
+        if (!isInitializedGL) {
+            LogUtils.e("Failed to draw frame. Initialize is failure");
+            return OpenGlUtils.NO_TEXTURE;
+        }
+
+        if (textureId == OpenGlUtils.NO_TEXTURE){
+            LogUtils.e("Failed to draw frame. Texture is error");
             return OpenGlUtils.NO_TEXTURE;
         }
         if (!isFrameBuffer) {

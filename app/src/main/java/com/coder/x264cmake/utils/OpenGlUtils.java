@@ -6,7 +6,6 @@ import android.hardware.Camera.Size;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
-import android.util.Log;
 
 import java.nio.IntBuffer;
 
@@ -176,7 +175,7 @@ public class OpenGlUtils {
         GLES20.glGetShaderiv(iShader, GLES20.GL_COMPILE_STATUS, compiled, 0);
 
         if (compiled[0] == 0) {
-            Log.d("Load Shader Failed", "Compilation\n" + GLES20.glGetShaderInfoLog(iShader));
+            LogUtils.e("Load Shader Failed : Compilation\n" + GLES20.glGetShaderInfoLog(iShader));
             GLES20.glDeleteShader(iShader);
             return 0;
         }
@@ -190,12 +189,12 @@ public class OpenGlUtils {
         int[] link = new int[1];
         vertexShaderId = loadShader(strVSource, GLES20.GL_VERTEX_SHADER);
         if (vertexShaderId == 0) {
-            Log.d("Load Program", "Vertex Shader Failed");
+            LogUtils.e("Vertex Shader Failed");
             return 0;
         }
         fragmentShaderId = loadShader(strFSource, GLES20.GL_FRAGMENT_SHADER);
         if (fragmentShaderId == 0) {
-            Log.d("Load Program", "Fragment Shader Failed");
+            LogUtils.e( "Fragment Shader Failed");
             return 0;
         }
 
@@ -211,7 +210,7 @@ public class OpenGlUtils {
 
         GLES20.glGetProgramiv(programObjectId, GLES20.GL_LINK_STATUS, link, 0);
         if (link[0] <= 0) {
-            Log.d("Load Program", "Linking Failed");
+            LogUtils.e( "Linking Failed");
             GLES20.glDeleteProgram(programObjectId);
             return 0;
         }

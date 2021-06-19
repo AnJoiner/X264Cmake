@@ -32,15 +32,12 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         if (mGLSurfaceView!= null) {
             mContext = mGLSurfaceView.getContext();
         }
-        mRendererManager = new RendererManager(mContext);
-
-
     }
 
     /**
      * 初始化相机
      */
-    private void initCameraLoader(){
+    private void createCameraLoader(){
         mCameraLoader = new Camera1Loader(mContext);
         mCameraLoader.setCameraPreCallback(new ICameraLoader.OnCameraPreCallback() {
             @Override
@@ -63,10 +60,12 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        // 创建渲染管理
+        mRendererManager = new RendererManager(mContext);
         // 创建OES纹理
         createTexture();
         // 创建相机并预览
-        initCameraLoader();
+        createCameraLoader();
         if (mCameraLoader!=null){
             mCameraLoader.mSurfaceTexture = mSurfaceTexture;
             mCameraLoader.setUpCamera();
@@ -93,7 +92,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         if (textures!=null && mSurfaceTexture!=null){
             release();
         }
-
+        textures = new int[1];
         OpenGlUtils.generateTextureOES(textures);
         mSurfaceTexture = new SurfaceTexture(textures[0]);
     }
@@ -127,6 +126,9 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         }
         if (mCameraLoader!=null){
             mCameraLoader.releaseCamera();
+        }
+        if (mRendererManager!=null){
+            mRendererManager.release();
         }
     }
 }
