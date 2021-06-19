@@ -9,6 +9,7 @@ import android.view.Surface;
 import android.view.WindowManager;
 
 import com.coder.x264cmake.utils.LogUtils;
+import com.coder.x264cmake.utils.OpenGlUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.List;
 
 public class Camera1Loader extends ICameraLoader {
 
-    private Activity mActivity;
+    private final Context mContext;
     // 默认后置摄像头
     public int cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
     // 相机实例
@@ -26,9 +27,11 @@ public class Camera1Loader extends ICameraLoader {
     private int cameraId = 0;
     // 是否正在预览
     public boolean isPreviewing = false;
+    // 纹理
+    public SurfaceTexture mSurfaceTexture;
 
-    public Camera1Loader(Activity activity) {
-        mActivity = activity;
+    public Camera1Loader(Context context) {
+        mContext = context;
     }
 
     @Override
@@ -56,7 +59,7 @@ public class Camera1Loader extends ICameraLoader {
     public int getCameraOrientation() {
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         Camera.getCameraInfo(cameraId, cameraInfo);
-        final int rotation = ((WindowManager) mActivity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+        final int rotation = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
             case Surface.ROTATION_0:
@@ -89,7 +92,7 @@ public class Camera1Loader extends ICameraLoader {
     }
 
 
-    private void setUpCamera() {
+    public void setUpCamera() {
         cameraId = getCurrentCameraId();
         try {
             cameraInstance = getCameraInstance(cameraId);
@@ -116,11 +119,18 @@ public class Camera1Loader extends ICameraLoader {
             }
         });
 
-//        cameraInstance.setDisplayOrientation(getCameraOrientation());
+        try {
+            if (mSurfaceTexture!=null)
+            cameraInstance.setPreviewTexture(mSurfaceTexture);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         cameraInstance.startPreview();
 
         isPreviewing = true;
     }
+
+
 
 
     /**
@@ -189,17 +199,29 @@ public class Camera1Loader extends ICameraLoader {
         for (Camera.Size previewSize : previewSizes) {
             // 满足设置比例
             if (previewSize.width * heightRatio == previewSize.height * widthRatio) {
-                if ((previewSize.width >= widthRange[0] && previewSize.width <= widthRange[1]) &&
-                        (previewSize.height >= heightRange[0] && previewSize.height <= heightRange[1])) {
-                    sizes.add(previewSize);
-                }
+//                if ((previewSize.width >= widthRange[0] && previewSize.width <= widthRange[1]) &&
+//                        (previewSize.height >= heightRange[0] && previewSize.height <= heightRange[1])) {
+//
+//                }
+                sizes.add(previewSize);
             }
         }
 
         if (sizes.size() == 0) return;
         // 设置预览大小
-        parameters.setPreviewSize(sizes.get(0).width, sizes.get(0).height);
+        Camera.Size size ;
+        if (sizes.size() < 3){
+            size = sizes.get(0);
+        }else {
+            // 多个满足时取中间值
+            int index = (sizes.size() - 1)/2;
+            size = sizes.get(index);
+        }
 
+        if (mOnCameraPreCallback != null) {
+            mOnCameraPreCallback.onCameraPreSize(size.width,size.height);
+        }
+        parameters.setPreviewSize(size.width, size.height);
     }
 
     public void releaseCamera() {

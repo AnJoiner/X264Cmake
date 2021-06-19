@@ -3,9 +3,12 @@ package com.coder.x264cmake.utils;
 import android.content.Context;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * @author: AnJoiner
@@ -41,5 +44,40 @@ public class FileUtils {
             //如果捕捉到错误则通知UI线程
             Log.i("copy", "false");
         }
+    }
+
+    /**
+     * 从Assets文件夹中读取shader字符串
+     */
+    public static String getShaderFromAssets(Context context, String path) {
+        InputStream inputStream = null;
+        try {
+            inputStream = context.getResources().getAssets().open(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return getShaderStringFromStream(inputStream);
+    }
+
+    /**
+     * 从输入流中读取shader字符创
+     */
+    private static String getShaderStringFromStream(InputStream inputStream) {
+        if (inputStream == null) {
+            return null;
+        }
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append("\n");
+            }
+            reader.close();
+            return builder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

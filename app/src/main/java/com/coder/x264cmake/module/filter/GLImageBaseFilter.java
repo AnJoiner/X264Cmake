@@ -1,13 +1,18 @@
 package com.coder.x264cmake.module.filter;
 
+import android.content.Context;
+import android.graphics.PointF;
 import android.opengl.GLES20;
 
 import com.coder.x264cmake.utils.LogUtils;
 import com.coder.x264cmake.utils.OpenGlUtils;
+import com.coder.x264cmake.utils.TextureCoordinateUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.LinkedList;
 
 /**
  * 滤镜基础类
@@ -17,14 +22,13 @@ import java.nio.FloatBuffer;
 public class GLImageBaseFilter {
     // 定点着色器
     protected static final String VERTEX_SHADER = "" +
-            "attribute vec4 position;\n" +
+            "attribute vec4 a_position;\n" +
             "attribute vec2 inputTextureCoordinate;\n" +
             "varying vec2 textureCoordinate;\n" +
-            "uniform mat4 u_matrix;\n" +
             "void main()\n" +
             "{\n" +
             "    textureCoordinate = inputTextureCoordinate;\n" +
-            "    gl_Position = u_matrix * position;\n" +
+            "    gl_Position = a_position;\n" +
             "}";
 
     // 片元着色器
@@ -37,19 +41,17 @@ public class GLImageBaseFilter {
             + "}";
 
     // gl 相关变量名称
-    protected static final String VERTEX_POSITION = "position";
+    protected static final String VERTEX_POSITION = "a_position";
     protected static final String VERTEX_TEXCOORD = "inputTextureCoordinate";
     protected static final String VERTEX_UNIFORM_MAT = "u_matrix";
     protected static final String FRAG_UNIFORM_TEX = "inputImageTexture";
 
-    // 缓存空间
-    private FloatBuffer mVertexFloatBuffer;
-    private FloatBuffer mTextureFloatBuffer;
+    protected final LinkedList<Runnable> mRunOnDraw;
+    protected Context mContext;
+
     // 纹理字符串
     protected String mVertexShader;
     protected String mFragmentShader;
-    // 顶点坐标数量
-    protected final int mCoordinateCount = 4;
     // GL程序id
     protected int mGLProgramId;
     // GL顶点着色器位置
@@ -80,63 +82,21 @@ public class GLImageBaseFilter {
     protected int[] mRenderBuffer;
     // 是否初始化GL
     protected boolean isInitializedGL;
-    // 矩阵
-    private float[] matrix;
 
-    // 顶点坐标
-    protected float vertices[] = {
-            -1.0f, -1.0f,   // 左下
-            1.0f, -1.0f,    // 右下
-            -1.0f, 1.0f,    // 左上
-            1.0f, 1.0f      // 右上
-    };
 
-    // 纹理坐标，以左下角 (0,0) 作为坐标远点
-    protected final float texCoords[] = {
-            1.0f, 0.0f,     // 右下
-            0.0f, 0.0f,     // 左下
-            1.0f, 1.0f,     // 右上
-            0.0f, 1.0f      // 左上
-    };
-//    protected final float texCoords[] = {
-//            0.0f, 0.0f,     // 左下
-//            1.0f, 0.0f,     // 右下
-//            0.0f, 1.0f,     // 左上
-//            1.0f, 1.0f      // 右上
-//    };
-
-    public GLImageBaseFilter() {
-        this(VERTEX_SHADER, FRAGMENT_SHADER);
+    public GLImageBaseFilter(Context context) {
+        this(context, VERTEX_SHADER, FRAGMENT_SHADER);
     }
 
-    public GLImageBaseFilter(String vertexShader, String fragmentShader) {
+    public GLImageBaseFilter(Context context, String vertexShader, String fragmentShader) {
+        mContext = context;
         mVertexShader = vertexShader;
         mFragmentShader = fragmentShader;
-
+        mRunOnDraw = new LinkedList<>();
 //        initFloatBuffer();
         initGLProgram();
     }
 
-
-    /**
-     * 初始化顶点缓冲空间
-     */
-    public void initFloatBuffer() {
-        mVertexFloatBuffer = ByteBuffer
-                .allocateDirect(vertices.length * mCoordinateCount)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer();
-        mVertexFloatBuffer.put(vertices);
-        mVertexFloatBuffer.position(0);
-
-
-        mTextureFloatBuffer = ByteBuffer
-                .allocateDirect(texCoords.length * mCoordinateCount)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer();
-        mTextureFloatBuffer.put(texCoords);
-        mTextureFloatBuffer.position(0);
-    }
 
     /**
      * 初始化openGL程序
@@ -147,26 +107,22 @@ public class GLImageBaseFilter {
         if (isValidate) {
             mGLVertexPosition = GLES20.glGetAttribLocation(mGLProgramId, VERTEX_POSITION);
             mGLTextureCoordinate = GLES20.glGetAttribLocation(mGLProgramId, VERTEX_TEXCOORD);
-            mGLUniformMatrix = GLES20.glGetUniformLocation(mGLProgramId, VERTEX_UNIFORM_MAT);
             mGLUniformTexture = GLES20.glGetUniformLocation(mGLProgramId, FRAG_UNIFORM_TEX);
 
             isInitializedGL = true;
         } else {
             mGLVertexPosition = OpenGlUtils.NO_GL;
             mGLTextureCoordinate = OpenGlUtils.NO_GL;
-            mGLUniformMatrix = OpenGlUtils.NO_GL;
             mGLUniformTexture = OpenGlUtils.NO_GL;
 
             isInitializedGL = false;
         }
+
+        onInitGLProgram(isValidate);
     }
 
-    public void setMatrix(float[] matrix) {
-        this.matrix = matrix;
-    }
+    protected void onInitGLProgram(boolean isValidate) {
 
-    public float[] getMatrix() {
-        return matrix;
     }
 
     /**
@@ -178,7 +134,7 @@ public class GLImageBaseFilter {
     }
 
     /**
-     *  显示视图发生变化
+     * 显示视图发生变化
      */
     public void onDisplaySizeChanged(int width, int height) {
         mDisplayWidth = width;
@@ -187,30 +143,21 @@ public class GLImageBaseFilter {
 
 
     /**
-     * 常用为Texture 2d 或者 oes
-     * @return 纹理类型
-     */
-    public int getTextureType() {
-        return GLES20.GL_TEXTURE_2D;
-    }
-
-
-    /**
      * 创建FBO
      */
-    public void onCreateFrameBuffer(int width, int height){
+    public void onCreateFrameBuffer(int width, int height) {
         // 创建之前如果存在先进行销毁
-        if (mFrameBuffer!=null &&(mFBOWidth!= width || mFBOHeight!=height)){
+        if (mFrameBuffer != null && (mFBOWidth != width || mFBOHeight != height)) {
             onDestroyFrameBuffer();
         }
         // 正式开始创建
-        if (mFrameBuffer == null || mFrameBufferTexture == null){
+        if (mFrameBuffer == null || mFrameBufferTexture == null) {
             mFBOWidth = width;
             mFBOHeight = height;
             mFrameBufferTexture = new int[1];
             mFrameBuffer = new int[1];
             mRenderBuffer = new int[1];
-            OpenGlUtils.createFrameBuffer(mFrameBufferTexture,mFrameBuffer,mRenderBuffer, width, height);
+            OpenGlUtils.createFrameBuffer(mFrameBufferTexture, mFrameBuffer, mRenderBuffer, width, height);
         }
     }
 
@@ -220,52 +167,65 @@ public class GLImageBaseFilter {
      * @param textureId          纹理id
      * @param vertexFloatBuffer  顶点坐标缓冲区
      * @param textureFloatBuffer 纹理坐标缓冲区
-     * @param isFrameBuffer 是否是帧缓冲渲染
+     * @param isFrameBuffer      是否是帧缓冲渲染
      */
-    public void onDrawFrame(int textureId, FloatBuffer vertexFloatBuffer, FloatBuffer textureFloatBuffer, boolean isFrameBuffer) {
+    public int onDrawFrame(int textureId, FloatBuffer vertexFloatBuffer, FloatBuffer textureFloatBuffer, boolean isFrameBuffer) {
         // 未初始GL程序
         if (!isInitializedGL || textureId == OpenGlUtils.NO_TEXTURE) {
             LogUtils.e("Failed to draw frame.");
-            return;
+            return OpenGlUtils.NO_TEXTURE;
         }
-        if (!isFrameBuffer){
+        if (!isFrameBuffer) {
             // 设置窗口大小
             GLES20.glViewport(0, 0, mDisplayWidth, mDisplayHeight);
             onClear();
         }
 
         // 如果FrameBuffer离屏渲染就需绑定FrameBuffer
-        if (isFrameBuffer){
+        if (isFrameBuffer) {
             onBindFrameBuffer();
         }
 
         // 绘制
-        drawFrame(textureId,vertexFloatBuffer,textureFloatBuffer);
+        drawFrame(textureId, vertexFloatBuffer, textureFloatBuffer);
 
         // 如果FrameBuffer离屏渲染就需解绑FrameBuffer
-        if (isFrameBuffer){
+        if (isFrameBuffer) {
             onUnBindFrameBuffer();
         }
+
+        return isFrameBuffer ? mFrameBufferTexture[0] : textureId;
     }
 
+    /**
+     * 销毁
+     */
+    public void release() {
+        if (isInitializedGL) {
+            GLES20.glDeleteProgram(mGLProgramId);
+            mGLProgramId = OpenGlUtils.NO_GL;
+        }
+        onDestroyFrameBuffer();
+    }
 
     /**
      * 销毁帧缓冲
      */
-    public void onDestroyFrameBuffer(){
+    public void onDestroyFrameBuffer() {
+        if (!isInitializedGL) return;
         // 销毁帧缓冲纹理
-        if (mFrameBufferTexture!=null){
-            GLES20.glDeleteTextures(1,mFrameBufferTexture,0);
+        if (mFrameBufferTexture != null) {
+            GLES20.glDeleteTextures(1, mFrameBufferTexture, 0);
             mFrameBufferTexture = null;
         }
         // 销毁渲染缓冲
-        if (mRenderBuffer != null){
-            GLES20.glDeleteRenderbuffers(1,mRenderBuffer,0);
+        if (mRenderBuffer != null) {
+            GLES20.glDeleteRenderbuffers(1, mRenderBuffer, 0);
             mRenderBuffer = null;
         }
         // 销毁帧缓冲
-        if (mFrameBuffer != null){
-            GLES20.glDeleteFramebuffers(1,mFrameBuffer,0);
+        if (mFrameBuffer != null) {
+            GLES20.glDeleteFramebuffers(1, mFrameBuffer, 0);
             mFrameBuffer = null;
         }
         // 重置宽高
@@ -276,14 +236,14 @@ public class GLImageBaseFilter {
     /**
      * 绑定FBO
      */
-    protected void onBindFrameBuffer(){
+    protected void onBindFrameBuffer() {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
     }
 
     /**
      * 解绑FBO
      */
-    protected void onUnBindFrameBuffer(){
+    protected void onUnBindFrameBuffer() {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
     }
 
@@ -321,7 +281,9 @@ public class GLImageBaseFilter {
      * 在绘制之前的预处理
      */
     protected void onPreExtra() {
-        GLES20.glUniformMatrix4fv(mGLUniformMatrix, 1, false, matrix, 0);
+        while (!mRunOnDraw.isEmpty()) {
+            mRunOnDraw.removeFirst().run();
+        }
     }
 
     /**
@@ -338,11 +300,13 @@ public class GLImageBaseFilter {
      */
     protected void onDraw(FloatBuffer vertexFloatBuffer, FloatBuffer textureFloatBuffer) {
         vertexFloatBuffer.position(0);
-        GLES20.glVertexAttribPointer(mGLVertexPosition, 2, GLES20.GL_FLOAT, false, mCoordinateCount * 2, vertexFloatBuffer);
+        GLES20.glVertexAttribPointer(mGLVertexPosition, 2, GLES20.GL_FLOAT, false,
+                TextureCoordinateUtils.COORDINATE_COUNT * 2, vertexFloatBuffer);
         GLES20.glEnableVertexAttribArray(mGLVertexPosition);
 
         textureFloatBuffer.position(0);
-        GLES20.glVertexAttribPointer(mGLTextureCoordinate, 2, GLES20.GL_FLOAT, false, mCoordinateCount * 2, textureFloatBuffer);
+        GLES20.glVertexAttribPointer(mGLTextureCoordinate, 2, GLES20.GL_FLOAT, false,
+                TextureCoordinateUtils.COORDINATE_COUNT * 2, textureFloatBuffer);
         GLES20.glEnableVertexAttribArray(mGLTextureCoordinate);
 
         onPreDraw();
@@ -379,5 +343,198 @@ public class GLImageBaseFilter {
      */
     protected void onUnBindTexture() {
         GLES20.glBindTexture(getTextureType(), GLES20.GL_NONE);
+    }
+
+
+    /**
+     * 常用为Texture 2d 或者 oes
+     *
+     * @return 纹理类型
+     */
+    protected int getTextureType() {
+        return GLES20.GL_TEXTURE_2D;
+    }
+
+
+    protected void runOnDraw(final Runnable runnable) {
+        synchronized (mRunOnDraw) {
+            mRunOnDraw.addLast(runnable);
+        }
+    }
+
+    //---------------------------------------Common Method--------------------------------------//
+
+    /**
+     * 向GL设置点
+     *
+     * @param location 位置
+     * @param point    点
+     */
+    public void setPoint(int location, PointF point) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                float[] vec2 = new float[2];
+                vec2[0] = point.x;
+                vec2[1] = point.y;
+                GLES20.glUniform2fv(location, 1, vec2, 0);
+            }
+        });
+    }
+
+    /**
+     * 设置int值
+     *
+     * @param location 位置
+     * @param value    值
+     */
+    public void setInteger(int location, int value) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform1i(location, value);
+            }
+        });
+    }
+
+    /**
+     * 设置int一维向量
+     */
+    public void setIntVec(int location, int[] array) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform1iv(location, array.length, IntBuffer.wrap(array));
+            }
+        });
+    }
+
+    /**
+     * 设置int二维向量
+     */
+    public void setIntVec2(int location, int[] array) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform2iv(location, array.length, IntBuffer.wrap(array));
+            }
+        });
+    }
+
+    /**
+     * 设置int三维向量
+     */
+    public void setIntVec3(int location, int[] array) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform3iv(location, array.length, IntBuffer.wrap(array));
+            }
+        });
+    }
+
+    /**
+     * 设置int四维向量
+     */
+    public void setIntVec4(int location, int[] array) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform4iv(location, array.length, IntBuffer.wrap(array));
+            }
+        });
+    }
+
+    /**
+     * 设置浮点一维向量
+     */
+    public void setFloatVec(int location, float[] array) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform1fv(location, array.length, FloatBuffer.wrap(array));
+            }
+        });
+    }
+
+    /**
+     * 设置浮点二维向量
+     */
+    public void setFloatVec2(int location, float[] array) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform2fv(location, array.length, FloatBuffer.wrap(array));
+            }
+        });
+    }
+
+    /**
+     * 设置浮点三维向量
+     */
+    public void setFloatVec3(int location, float[] array) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform3fv(location, array.length, FloatBuffer.wrap(array));
+            }
+        });
+    }
+
+    /**
+     * 设置浮点四维向量
+     */
+    public void setFloatVec4(int location, float[] array) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform4fv(location, array.length, FloatBuffer.wrap(array));
+            }
+        });
+    }
+
+    /**
+     * 设置二阶矩阵
+     *
+     * @param location 位置
+     * @param matrix   矩阵
+     */
+    public void setUniformMatrix2fv(int location, float[] matrix) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniformMatrix2fv(location, 1, false, matrix, 0);
+            }
+        });
+    }
+
+    /**
+     * 设置三阶矩阵
+     *
+     * @param location 位置
+     * @param matrix   矩阵
+     */
+    public void setUniformMatrix3fv(int location, float[] matrix) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniformMatrix3fv(location, 1, false, matrix, 0);
+            }
+        });
+    }
+
+    /**
+     * 设置四阶矩阵
+     *
+     * @param location 位置
+     * @param matrix   矩阵
+     */
+    public void setUniformMatrix4fv(int location, float[] matrix) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniformMatrix4fv(location, 1, false, matrix, 0);
+            }
+        });
     }
 }

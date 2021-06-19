@@ -24,10 +24,6 @@ public abstract class ICameraLoader {
     public abstract boolean hasMultipleCamera();
 
 
-    public interface OnCameraPreCallback {
-        void onCameraPreFrame(byte[] data, int width, int height);
-    }
-
     public void setPreviewType(int previewType) {
         this.previewType = previewType;
     }
@@ -35,4 +31,11 @@ public abstract class ICameraLoader {
     public void setCameraPreCallback(OnCameraPreCallback onCameraPreCallback) {
         this.mOnCameraPreCallback = onCameraPreCallback;
     }
+
+
+    public interface OnCameraPreCallback {
+        void onCameraPreSize(int width, int height);
+        void onCameraPreFrame(byte[] data, int width, int height);
+    }
+
 }

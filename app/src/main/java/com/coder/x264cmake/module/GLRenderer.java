@@ -28,7 +28,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
 
     public GLRenderer(GLSurfaceView gLSurfaceView) {
         this.gLSurfaceView = gLSurfaceView;
-
     }
 
     public void setImageFilter(GLImageFilter glImageFilter) {

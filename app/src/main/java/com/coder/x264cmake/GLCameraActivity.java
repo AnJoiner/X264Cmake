@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.coder.x264cmake.module.GLRenderer;
-import com.coder.x264cmake.module.camera.Camera1Loader;
 import com.coder.x264cmake.module.camera.CameraLoader;
 import com.coder.x264cmake.module.filter.GLImageFilter;
 import com.coder.x264cmake.utils.LogUtils;

@@ -33,7 +33,7 @@ public class Camera2Loader extends ICameraLoader {
     private static final int PREVIEW_WIDTH = 480;
     private static final int PREVIEW_HEIGHT = 640;
 
-    private Activity mActivity;
+    private Context mContext;
     // 默认后置摄像头
     public int cameraFacing = CameraCharacteristics.LENS_FACING_BACK;
     // 相机实例
@@ -50,9 +50,9 @@ public class Camera2Loader extends ICameraLoader {
 
     private byte[] mImageData;
 
-    public Camera2Loader(Activity activity) {
-        mActivity = activity;
-        cameraManager = (CameraManager) mActivity.getSystemService(Context.CAMERA_SERVICE);
+    public Camera2Loader(Context context) {
+        mContext = context;
+        cameraManager = (CameraManager) mContext.getSystemService(Context.CAMERA_SERVICE);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class Camera2Loader extends ICameraLoader {
 
     @Override
     public int getCameraOrientation() {
-        final int rotation = ((WindowManager) mActivity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+        final int rotation = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
             case Surface.ROTATION_0:
@@ -173,6 +173,9 @@ public class Camera2Loader extends ICameraLoader {
 
     private void startCaptureSession() {
         Size size = chooseOptimalSize();
+        if (mOnCameraPreCallback != null) {
+            mOnCameraPreCallback.onCameraPreSize(size.getWidth(), size.getHeight());
+        }
         imageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.YUV_420_888, 2);
         imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
