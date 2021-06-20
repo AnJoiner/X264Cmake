@@ -169,7 +169,7 @@ public class RendererManager {
 
         // 预览输出渲染
         currentTexture = mFilterArrays.get(RendererIndex.PREVIEW_INDEX)
-                .onDrawFrame(currentTexture,mDisplayVertexBuffer, mDisplayTextureBuffer, false);
+                .onDrawFrame(currentTexture,mVertexBuffer, mTextureBuffer, false);
 
         return currentTexture;
     }

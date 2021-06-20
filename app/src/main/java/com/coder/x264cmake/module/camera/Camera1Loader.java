@@ -1,6 +1,5 @@
 package com.coder.x264cmake.module.camera;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -9,7 +8,6 @@ import android.view.Surface;
 import android.view.WindowManager;
 
 import com.coder.x264cmake.utils.LogUtils;
-import com.coder.x264cmake.utils.OpenGlUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,7 +15,7 @@ import java.util.List;
 
 
 public class Camera1Loader extends ICameraLoader {
-
+    // 上下文
     private final Context mContext;
     // 默认后置摄像头
     public int cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
@@ -36,7 +34,7 @@ public class Camera1Loader extends ICameraLoader {
 
     @Override
     public void onPause() {
-        releaseCamera();
+        release();
     }
 
     @Override
@@ -51,7 +49,7 @@ public class Camera1Loader extends ICameraLoader {
         } else if (cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) {
             cameraFacing = Camera.CameraInfo.CAMERA_FACING_FRONT;
         }
-        releaseCamera();
+        release();
         setUpCamera();
     }
 
@@ -106,7 +104,7 @@ public class Camera1Loader extends ICameraLoader {
         setPreviewSize(parameters);
         // 设置预览格式为nv21
         parameters.setPreviewFormat(ImageFormat.NV21);
-
+        // 设置配置参数
         cameraInstance.setParameters(parameters);
 
         cameraInstance.setPreviewCallback(new Camera.PreviewCallback() {
@@ -224,7 +222,7 @@ public class Camera1Loader extends ICameraLoader {
         parameters.setPreviewSize(size.width, size.height);
     }
 
-    public void releaseCamera() {
+    public void release() {
         if (cameraInstance != null) {
             cameraInstance.setPreviewCallback(null);
             cameraInstance.stopPreview();

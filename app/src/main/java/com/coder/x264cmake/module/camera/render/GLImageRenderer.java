@@ -17,9 +17,8 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     private Context mContext;
     // 渲染管理器
     private RendererManager mRendererManager;
-
+    // 相机加载器
     private Camera1Loader mCameraLoader;
-
     // 纹理对象
     private int[] textures;
 
@@ -64,8 +63,11 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         mRendererManager = new RendererManager(mContext);
         // 创建OES纹理
         createTexture();
+        // 设置纹理监听
+        mSurfaceTexture.setOnFrameAvailableListener(this);
         // 创建相机并预览
         createCameraLoader();
+
         if (mCameraLoader!=null){
             mCameraLoader.mSurfaceTexture = mSurfaceTexture;
             mCameraLoader.setUpCamera();
@@ -125,7 +127,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
             mSurfaceTexture = null;
         }
         if (mCameraLoader!=null){
-            mCameraLoader.releaseCamera();
+            mCameraLoader.release();
         }
         if (mRendererManager!=null){
             mRendererManager.release();
