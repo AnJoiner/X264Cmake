@@ -401,6 +401,21 @@ public class GLImageBaseFilter {
     }
 
     /**
+     * 设置float值
+     *
+     * @param location 位置
+     * @param value    值
+     */
+    public void setFloat(int location, float value) {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform1f(location, value);
+            }
+        });
+    }
+
+    /**
      * 设置int一维向量
      */
     public void setIntVec(int location, int[] array) {

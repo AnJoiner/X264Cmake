@@ -6,13 +6,12 @@ import android.util.SparseArray;
 
 import com.coder.x264cmake.module.filter.GLImageBaseFilter;
 import com.coder.x264cmake.module.filter.GLImageOESFilter;
+import com.coder.x264cmake.module.filter.beauty.GLImageBeautyFilter;
 import com.coder.x264cmake.utils.TextureCoordinateUtils;
 
 import java.nio.FloatBuffer;
 
 public class RendererManager {
-    // 滤镜数量
-    private static final int mFilterCount = 2;
     // 上下文
     private Context mContext;
     // 滤镜列表
@@ -67,6 +66,7 @@ public class RendererManager {
         releaseImageFilters();
 
         mFilterArrays.put(RendererIndex.OES_INDEX, new GLImageOESFilter(mContext));
+        mFilterArrays.put(RendererIndex.BEAUTY_INDEX, new GLImageBeautyFilter(mContext));
         mFilterArrays.put(RendererIndex.PREVIEW_INDEX, new GLImageBaseFilter(mContext));
     }
 
@@ -75,7 +75,7 @@ public class RendererManager {
      * 释放滤镜
      */
     public void releaseImageFilters(){
-        for (int i = 0; i < mFilterCount; i++) {
+        for (int i = 0; i < RendererIndex.RENDERER_COUNT; i++) {
             GLImageBaseFilter filter = mFilterArrays.get(i);
             if (filter!= null){
                 filter.release();
@@ -166,6 +166,9 @@ public class RendererManager {
                 .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer, true);
 
         // 其他滤镜
+        // 美颜滤镜
+        currentTexture = mFilterArrays.get(RendererIndex.BEAUTY_INDEX)
+                .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
 
         // 预览输出渲染
         currentTexture = mFilterArrays.get(RendererIndex.PREVIEW_INDEX)
@@ -178,7 +181,7 @@ public class RendererManager {
      * 调整滤镜变换
      */
     private void onFilterChanged() {
-        for (int i = 0; i < mFilterCount; i++) {
+        for (int i = 0; i < RendererIndex.RENDERER_COUNT ; i++) {
             if (mFilterArrays.get(i) != null) {
                 mFilterArrays.get(i).onSurfaceChanged(mImageWidth, mImageHeight);
                 // 到显示之前都需要创建FBO，这里限定是防止创建多余的FBO，节省GPU资源
