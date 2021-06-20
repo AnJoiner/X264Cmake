@@ -228,14 +228,14 @@ public class Camera1Loader extends ICameraLoader {
 
         if (sizes.size() == 0) return;
         // 设置预览大小
-        Camera.Size size ;
-        if (sizes.size() < 3){
-            size = sizes.get(0);
-        }else {
-            // 多个满足时取中间值
-            int index = (sizes.size() - 1)/2;
-            size = sizes.get(index);
-        }
+        Camera.Size  size = sizes.get(0);
+//        if (sizes.size() < 3){
+//            size = sizes.get(0);
+//        }else {
+//            // 多个满足时取中间值
+//            int index = (sizes.size() - 1)/2;
+//            size = sizes.get(index);
+//        }
 
         if (mOnCameraPreCallback != null) {
             mOnCameraPreCallback.onCameraPreSize(size.width,size.height);

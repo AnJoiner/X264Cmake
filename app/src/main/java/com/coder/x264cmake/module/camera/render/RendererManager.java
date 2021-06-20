@@ -124,7 +124,7 @@ public class RendererManager {
         mDisplayWidth = width;
         mDisplayHeight = height;
         if (mImageWidth!=0 && mImageHeight != 0){
-            adjustCoordinateSize();
+            calculateSize();
             onFilterChanged();
         }
     }
@@ -138,7 +138,7 @@ public class RendererManager {
         mImageWidth = width;
         mImageHeight = height;
         if (mDisplayWidth!= 0 && mDisplayHeight!=0){
-            adjustCoordinateSize();
+            calculateSize();
             onFilterChanged();
         }
     }
@@ -191,6 +191,11 @@ public class RendererManager {
     }
 
     private void calculateSize(){
+        float ratioMax = Math.min((float) mDisplayWidth / mImageWidth,
+                (float) mDisplayHeight / mImageHeight);
+
+        mDisplayWidth = (int) (ratioMax * mImageWidth);
+        mDisplayHeight = (int) (ratioMax * mImageHeight);
 
     }
 
