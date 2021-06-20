@@ -24,7 +24,7 @@ public class RendererManager {
     private FloatBuffer mDisplayVertexBuffer;
     private FloatBuffer mDisplayTextureBuffer;
     // 缩放类型
-    private ImageScaleType mImageScaleType = ImageScaleType.CENTER_CROP;
+    private ImageScaleType mImageScaleType = ImageScaleType.CENTER_INSIDE;
 
     // 渲染的Image的宽高
     protected int mImageWidth;
@@ -169,7 +169,7 @@ public class RendererManager {
 
         // 预览输出渲染
         currentTexture = mFilterArrays.get(RendererIndex.PREVIEW_INDEX)
-                .onDrawFrame(currentTexture,mVertexBuffer, mTextureBuffer, false);
+                .onDrawFrame(currentTexture,mDisplayVertexBuffer, mDisplayTextureBuffer, false);
 
         return currentTexture;
     }
@@ -188,6 +188,10 @@ public class RendererManager {
                 mFilterArrays.get(i).onDisplaySizeChanged(mDisplayWidth, mDisplayHeight);
             }
         }
+    }
+
+    private void calculateSize(){
+
     }
 
     /**

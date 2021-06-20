@@ -47,12 +47,14 @@ public class GLCameraActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         mGLSurfaceView.onResume();
+        mGLImageRenderer.resumeCamera();
 //        mCamera1Loader.onResume(mGLSurfaceView.getWidth(),mGLSurfaceView.getHeight());
     }
 
     @Override
     protected void onPause() {
 //        mCameraLoader.releaseCamera();
+        mGLImageRenderer.releaseCamera();
         super.onPause();
         mGLSurfaceView.onPause();
     }

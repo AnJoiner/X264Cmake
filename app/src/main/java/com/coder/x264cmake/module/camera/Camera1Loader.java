@@ -18,7 +18,7 @@ public class Camera1Loader extends ICameraLoader {
     // 上下文
     private final Context mContext;
     // 默认后置摄像头
-    public int cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
+    public int cameraFacing = Camera.CameraInfo.CAMERA_FACING_FRONT;
     // 相机实例
     public Camera cameraInstance = null;
     // 相机id
@@ -99,14 +99,19 @@ public class Camera1Loader extends ICameraLoader {
         }
         // 获取相机参数
         Camera.Parameters parameters = cameraInstance.getParameters();
+        // 设置闪光
+        setFlash(parameters);
         // 设置对焦
         setFocus(parameters);
+        // 设置预览大小
         setPreviewSize(parameters);
         // 设置预览格式为nv21
         parameters.setPreviewFormat(ImageFormat.NV21);
+        // 设置图片大小
+        setPictureSize(parameters);
         // 设置配置参数
         cameraInstance.setParameters(parameters);
-
+        // 设置数据返回
         cameraInstance.setPreviewCallback(new Camera.PreviewCallback() {
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
@@ -116,7 +121,8 @@ public class Camera1Loader extends ICameraLoader {
                 }
             }
         });
-
+        // 设置预览方向
+        cameraInstance.setDisplayOrientation(getCameraOrientation());
         try {
             if (mSurfaceTexture!=null)
             cameraInstance.setPreviewTexture(mSurfaceTexture);
@@ -160,15 +166,34 @@ public class Camera1Loader extends ICameraLoader {
         return c;
     }
 
+    private void setFlash(Camera.Parameters parameters) {
+        List<String> flashModes = parameters.getSupportedFlashModes();
+        if (flashModes != null && flashModes.contains(Camera.Parameters.FLASH_MODE_AUTO)) {
+            parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+        }
+    }
+
     /**
      * 设置对焦
      *
      * @param parameters 相机参数
      */
+//    private void setFocus(Camera.Parameters parameters) {
+//        List<String> focusModes = parameters.getSupportedFocusModes();
+//        if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+//            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+//        }
+//    }
     private void setFocus(Camera.Parameters parameters) {
         List<String> focusModes = parameters.getSupportedFocusModes();
         if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        } else if (focusModes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
+        } else if (focusModes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+        } else {
+            parameters.setFocusMode(focusModes.get(0));
         }
     }
 
@@ -197,10 +222,6 @@ public class Camera1Loader extends ICameraLoader {
         for (Camera.Size previewSize : previewSizes) {
             // 满足设置比例
             if (previewSize.width * heightRatio == previewSize.height * widthRatio) {
-//                if ((previewSize.width >= widthRange[0] && previewSize.width <= widthRange[1]) &&
-//                        (previewSize.height >= heightRange[0] && previewSize.height <= heightRange[1])) {
-//
-//                }
                 sizes.add(previewSize);
             }
         }
@@ -220,6 +241,49 @@ public class Camera1Loader extends ICameraLoader {
             mOnCameraPreCallback.onCameraPreSize(size.width,size.height);
         }
         parameters.setPreviewSize(size.width, size.height);
+    }
+
+    /**
+     * 设置拍照大小
+     */
+    private void setPictureSize(Camera.Parameters parameters) {
+        List<Camera.Size> mPictureSizes = parameters.getSupportedPictureSizes();
+        Camera.Size previewSize = parameters.getPreviewSize();
+        Camera.Size biggestSize = null;
+        Camera.Size fitSize = null;// 优先选预览界面的尺寸
+
+        float scaleSize = 0;
+        if (null != previewSize) {
+            scaleSize = previewSize.width / (float) previewSize.height;
+        }
+
+        for (int i = 0; i < mPictureSizes.size(); i++) {
+            Camera.Size picture = mPictureSizes.get(i);
+//            LogUtils.d("###### SupportedPictureSizes: width=" + picture.width + ", height="
+//                    + picture.height);
+            if (null == biggestSize) {
+                biggestSize = picture;
+            } else if (picture.width > biggestSize.width && picture.height > biggestSize.height) {
+                biggestSize = picture;
+            }
+
+            if (scaleSize > 0 && picture.width > previewSize.width && picture.height > previewSize.height) {
+                float currentScale = picture.width / (float) picture.height;
+                if (scaleSize == currentScale) {
+                    if (null == fitSize) {
+                        fitSize = picture;
+                    } else if (picture.width > fitSize.width && picture.height > fitSize.height) {
+                        fitSize = picture;
+                    }
+                }
+            }
+        }
+
+        if (null == fitSize) {
+            fitSize = biggestSize;
+        }
+
+        parameters.setPictureSize(fitSize.width, fitSize.height);
     }
 
     public void release() {

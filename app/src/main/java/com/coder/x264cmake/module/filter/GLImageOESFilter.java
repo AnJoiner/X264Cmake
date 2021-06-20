@@ -24,7 +24,7 @@ public class GLImageOESFilter extends GLImageBaseFilter{
     protected void onInitGLProgram(boolean isValidate) {
         super.onInitGLProgram(isValidate);
         if (isValidate){
-            mGLUniformMatrix = GLES20.glGetAttribLocation(mGLProgramId, VERTEX_UNIFORM_MAT);
+            mGLUniformMatrix = GLES20.glGetUniformLocation(mGLProgramId, VERTEX_UNIFORM_MAT);
         }else {
             mGLUniformMatrix = OpenGlUtils.NO_GL;
         }
@@ -38,6 +38,11 @@ public class GLImageOESFilter extends GLImageBaseFilter{
         return GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
     }
 
+    @Override
+    protected void onPreExtra() {
+        super.onPreExtra();
+
+    }
 
     @Override
     protected void onPreDraw() {

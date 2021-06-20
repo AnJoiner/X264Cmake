@@ -70,8 +70,8 @@ public class GLImageBaseFilter {
     protected int mDisplayHeight;
 
     // FBO的宽高
-    protected int mFBOWidth = -1;
-    protected int mFBOHeight = -1;
+    protected int mFrameWidth = -1;
+    protected int mFrameHeight = -1;
 
     // 帧缓冲对象id和纹理id
     protected int[] mFrameBuffer;
@@ -145,13 +145,13 @@ public class GLImageBaseFilter {
      */
     public void onCreateFrameBuffer(int width, int height) {
         // 创建之前如果存在先进行销毁
-        if (mFrameBuffer != null && (mFBOWidth != width || mFBOHeight != height)) {
+        if (mFrameBuffer != null && (mFrameWidth != width || mFrameHeight != height)) {
             onDestroyFrameBuffer();
         }
         // 正式开始创建
         if (mFrameBuffer == null || mFrameBufferTexture == null) {
-            mFBOWidth = width;
-            mFBOHeight = height;
+            mFrameWidth = width;
+            mFrameHeight = height;
             mFrameBufferTexture = new int[1];
             mFrameBuffer = new int[1];
             mRenderBuffer = new int[1];
@@ -232,8 +232,8 @@ public class GLImageBaseFilter {
             mFrameBuffer = null;
         }
         // 重置宽高
-        mFBOWidth = -1;
-        mFBOHeight = -1;
+        mFrameWidth = -1;
+        mFrameHeight = -1;
     }
 
     /**
@@ -269,7 +269,7 @@ public class GLImageBaseFilter {
      * 清除画布
      */
     protected void onClear() {
-        GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
     }
 

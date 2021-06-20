@@ -5,5 +5,5 @@ uniform mat4 u_matrix;
 void main()
 {
     textureCoordinate = (u_matrix * inputTextureCoordinate).xy;
-    gl_Position = a_position;
+    gl_Position = a_position ;
 }
