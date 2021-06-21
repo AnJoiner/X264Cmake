@@ -1,6 +1,9 @@
 package com.coder.x264cmake.utils;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -44,6 +47,25 @@ public class FileUtils {
             //如果捕捉到错误则通知UI线程
             Log.i("copy", "false");
         }
+    }
+
+    /**
+     * 加载Assets文件夹下的图片
+     * @param context 上下文
+     * @param fileName assets下 文件全路径
+     * @return 位图
+     */
+    public static Bitmap getImageFromAssetsFile(Context context, String fileName) {
+        Bitmap bitmap = null;
+        AssetManager manager = context.getResources().getAssets();
+        try {
+            InputStream is = manager.open(fileName);
+            bitmap = BitmapFactory.decodeStream(is);
+            is.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bitmap;
     }
 
     /**

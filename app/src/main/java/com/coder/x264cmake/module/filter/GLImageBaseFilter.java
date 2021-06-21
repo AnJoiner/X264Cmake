@@ -32,17 +32,17 @@ public class GLImageBaseFilter {
     // 片元着色器
     protected static final String FRAGMENT_SHADER = ""
             + "precision mediump float;\n"
-            + "uniform sampler2D inputImageTexture;\n"
+            + "uniform sampler2D inputTexture;\n"
             + "varying vec2 textureCoordinate;\n"
             + "void main() {\n"
-            + "  gl_FragColor = texture2D( inputImageTexture, textureCoordinate );\n"
+            + "  gl_FragColor = texture2D( inputTexture, textureCoordinate );\n"
             + "}";
 
     // gl 相关变量名称
     protected static final String VERTEX_POSITION = "a_position";
     protected static final String VERTEX_TEXCOORD = "inputTextureCoordinate";
     protected static final String VERTEX_UNIFORM_MAT = "u_matrix";
-    protected static final String FRAG_UNIFORM_TEX = "inputImageTexture";
+    protected static final String FRAG_UNIFORM_TEX = "inputTexture";
 
     protected final LinkedList<Runnable> mRunOnDraw;
     protected Context mContext;
