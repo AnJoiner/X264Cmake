@@ -60,6 +60,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         // surface变更
+        LogUtils.e("onSurfaceChanged==>>> width:" + width + ", height:" + height);
         if (mRendererManager != null) {
             mRendererManager.setDisplaySize(width, height);
         }
@@ -158,4 +159,5 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
             mRendererManager.release();
         }
     }
+
 }

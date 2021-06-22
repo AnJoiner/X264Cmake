@@ -2,6 +2,7 @@ package com.coder.x264cmake;
 
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
 
 import androidx.annotation.Nullable;
@@ -28,11 +29,16 @@ public class GLCameraActivity extends AppCompatActivity {
 
     private void init() {
         initView();
+        initListener();
         initData();
     }
 
     private void initView() {
         mGLSurfaceView = findViewById(R.id.camera_surface);
+    }
+
+    private void initListener(){
+
     }
 
     private void initData() {

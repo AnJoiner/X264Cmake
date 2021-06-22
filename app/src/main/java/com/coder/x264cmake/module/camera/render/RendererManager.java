@@ -2,6 +2,7 @@ package com.coder.x264cmake.module.camera.render;
 
 
 import android.content.Context;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.coder.x264cmake.module.filter.GLImageBaseFilter;
@@ -34,6 +35,9 @@ public class RendererManager {
     protected int mDisplayWidth;
     protected int mDisplayHeight;
 
+    // Controls the alignment between frame size and surface size, 0.5f default is centered.
+    private float alignmentHorizontal = 0.5f;
+    private float alignmentVertical = 0.5f;
 
     public RendererManager(Context context) {
         mContext = context;
@@ -69,6 +73,7 @@ public class RendererManager {
         mFilterArrays.put(RendererIndex.OES_INDEX, new GLImageOESFilter(mContext));
         mFilterArrays.put(RendererIndex.BEAUTY_INDEX, new GLImageBeautyFilter(mContext));
         mFilterArrays.put(RendererIndex.COLOR_INDEX, new GLImageAmaroFilter(mContext));
+//        mFilterArrays.put(RendererIndex.EFFECT_INDEX, new GLImageEffectSoulStuffFilter(mContext));
         mFilterArrays.put(RendererIndex.PREVIEW_INDEX, new GLImageBaseFilter(mContext));
     }
 
@@ -127,7 +132,7 @@ public class RendererManager {
         mDisplayHeight = height;
         if (mImageWidth!=0 && mImageHeight != 0){
             calculateSize();
-//            adjustCoordinateSize();
+//            computeWindowSurfaceSize();
             onFilterChanged();
         }
     }
@@ -142,7 +147,7 @@ public class RendererManager {
         mImageHeight = height;
         if (mDisplayWidth!= 0 && mDisplayHeight!=0){
             calculateSize();
-//            adjustCoordinateSize();
+//            computeWindowSurfaceSize();
             onFilterChanged();
         }
     }
@@ -179,6 +184,10 @@ public class RendererManager {
         currentTexture = mFilterArrays.get(RendererIndex.COLOR_INDEX)
                 .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
 
+        // 3. 特效滤镜
+//        currentTexture = mFilterArrays.get(RendererIndex.EFFECT_INDEX)
+//                .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
+
         // 预览输出渲染
         currentTexture = mFilterArrays.get(RendererIndex.PREVIEW_INDEX)
                 .onDrawFrame(currentTexture,mDisplayVertexBuffer, mDisplayTextureBuffer, false);
@@ -212,18 +221,29 @@ public class RendererManager {
     }
 
     /**
-     * 自动适应调整窗口大小和图像大小不一致
+     * 计算距离
      */
-    private void adjustCoordinateSize() {
+    private float calculateDistance(float coordinate, float distance) {
+        return coordinate == 0.0f ? distance : 1 - distance;
+    }
+
+    /**
+     *  compute scale from surfaceTexture size.
+     */
+    private void computeWindowSurfaceSize(){
         float[] textureCoord = null;
         float[] vertexCoord = null;
+        // 纹理坐标
         float[] textureVertices = TextureCoordinateUtils.texCoords;
+        // 顶点坐标
         float[] vertexVertices = TextureCoordinateUtils.vertices;
-        float ratioMax = Math.max((float) mDisplayWidth / mImageWidth,
+        // 获取最大的缩放比例
+        float maxScale = Math.max((float) mDisplayWidth / mImageWidth,
                 (float) mDisplayHeight / mImageHeight);
+
         // 新的宽高
-        int imageWidth = Math.round(mImageWidth * ratioMax);
-        int imageHeight = Math.round(mImageHeight * ratioMax);
+        int imageWidth = Math.round(mImageWidth * maxScale);
+        int imageHeight = Math.round(mImageHeight * maxScale);
         // 获取视图跟texture的宽高比
         float ratioWidth = (float) imageWidth / (float) mDisplayWidth;
         float ratioHeight = (float) imageHeight / (float) mDisplayHeight;
@@ -260,10 +280,4 @@ public class RendererManager {
         mDisplayTextureBuffer.put(textureCoord).position(0);
     }
 
-    /**
-     * 计算距离
-     */
-    private float calculateDistance(float coordinate, float distance) {
-        return coordinate == 0.0f ? distance : 1 - distance;
-    }
 }

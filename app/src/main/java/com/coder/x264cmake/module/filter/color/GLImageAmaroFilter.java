@@ -76,9 +76,9 @@ public class GLImageAmaroFilter extends GLImageBaseFilter {
         super.onPreDraw();
 
         for (int i = 0; i < mTextures.length && mTextures[i] != OpenGlUtils.NO_TEXTURE; i++) {
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + (i+1));
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + (i+2));
             GLES20.glBindTexture(getTextureType(), mTextures[i]);
-            GLES20.glUniform1i(mUniformLocs[i], (i+1));
+            GLES20.glUniform1i(mUniformLocs[i], (i+2));
         }
     }
 
