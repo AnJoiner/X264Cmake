@@ -4,6 +4,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +18,8 @@ public class GLCameraActivity extends AppCompatActivity {
     private GLSurfaceView mGLSurfaceView;
     // 渲染render
     private GLImageRenderer mGLImageRenderer;
+
+    private FrameLayout mPreviewLayout;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,7 +37,10 @@ public class GLCameraActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        mGLSurfaceView = findViewById(R.id.camera_surface);
+        mPreviewLayout =  findViewById(R.id.preview_layout);
+        mGLSurfaceView = new GLSurfaceView(this);
+        mGLSurfaceView.setId(R.id.camera_surface);
+        mPreviewLayout.addView(mGLSurfaceView);
     }
 
     private void initListener(){

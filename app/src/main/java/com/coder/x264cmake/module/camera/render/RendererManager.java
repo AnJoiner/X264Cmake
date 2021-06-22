@@ -131,8 +131,8 @@ public class RendererManager {
         mDisplayWidth = width;
         mDisplayHeight = height;
         if (mImageWidth!=0 && mImageHeight != 0){
-            calculateSize();
-//            computeWindowSurfaceSize();
+            adjustImageScaling();
+//            calculateSize();
             onFilterChanged();
         }
     }
@@ -146,8 +146,8 @@ public class RendererManager {
         mImageWidth = width;
         mImageHeight = height;
         if (mDisplayWidth!= 0 && mDisplayHeight!=0){
-            calculateSize();
-//            computeWindowSurfaceSize();
+            adjustImageScaling();
+//            calculateSize();
             onFilterChanged();
         }
     }
@@ -220,64 +220,49 @@ public class RendererManager {
 
     }
 
-    /**
-     * 计算距离
-     */
-    private float calculateDistance(float coordinate, float distance) {
+    private float addDistance(float coordinate, float distance) {
         return coordinate == 0.0f ? distance : 1 - distance;
     }
 
-    /**
-     *  compute scale from surfaceTexture size.
-     */
-    private void computeWindowSurfaceSize(){
-        float[] textureCoord = null;
-        float[] vertexCoord = null;
-        // 纹理坐标
-        float[] textureVertices = TextureCoordinateUtils.texCoords;
-        // 顶点坐标
-        float[] vertexVertices = TextureCoordinateUtils.vertices;
-        // 获取最大的缩放比例
-        float maxScale = Math.max((float) mDisplayWidth / mImageWidth,
-                (float) mDisplayHeight / mImageHeight);
+    private void adjustImageScaling() {
+        float ratio1 = ((float)mDisplayWidth )/ mImageWidth;
+        float ratio2 = ((float)mDisplayHeight) / mImageHeight;
 
-        // 新的宽高
-        int imageWidth = Math.round(mImageWidth * maxScale);
-        int imageHeight = Math.round(mImageHeight * maxScale);
-        // 获取视图跟texture的宽高比
-        float ratioWidth = (float) imageWidth / (float) mDisplayWidth;
-        float ratioHeight = (float) imageHeight / (float) mDisplayHeight;
-        if (mImageScaleType == ImageScaleType.CENTER_INSIDE) {
-            vertexCoord = new float[] {
-                    vertexVertices[0] / ratioHeight, vertexVertices[1] / ratioWidth,
-                    vertexVertices[2] / ratioHeight, vertexVertices[3] / ratioWidth,
-                    vertexVertices[4] / ratioHeight, vertexVertices[5] / ratioWidth,
-                    vertexVertices[6] / ratioHeight, vertexVertices[7] / ratioWidth,
-            };
-        } else if (mImageScaleType == ImageScaleType.CENTER_CROP) {
+        float ratioMax = Math.max(ratio1, ratio2);
+        int imageWidthNew = Math.round(mImageWidth * ratioMax);
+        int imageHeightNew = Math.round(mImageHeight * ratioMax);
+
+        float ratioWidth = imageWidthNew / ((float)mDisplayWidth );
+        float ratioHeight = imageHeightNew / ((float)mDisplayHeight);
+
+        float[] vertexCords = TextureCoordinateUtils.vertices;
+        float[] textureCords = TextureCoordinateUtils.texCoords;
+        if (mImageScaleType == ImageScaleType.CENTER_CROP) {
             float distHorizontal = (1 - 1 / ratioWidth) / 2;
             float distVertical = (1 - 1 / ratioHeight) / 2;
-            textureCoord = new float[] {
-                    calculateDistance(textureVertices[0], distHorizontal), calculateDistance(textureVertices[1], distVertical),
-                    calculateDistance(textureVertices[2], distHorizontal), calculateDistance(textureVertices[3], distVertical),
-                    calculateDistance(textureVertices[4], distHorizontal), calculateDistance(textureVertices[5], distVertical),
-                    calculateDistance(textureVertices[6], distHorizontal), calculateDistance(textureVertices[7], distVertical),
+            textureCords = new float[]{
+                    addDistance(textureCords[0], distHorizontal), addDistance(textureCords[1], distVertical),
+                    addDistance(textureCords[2], distHorizontal), addDistance(textureCords[3], distVertical),
+                    addDistance(textureCords[4], distHorizontal), addDistance(textureCords[5], distVertical),
+                    addDistance(textureCords[6], distHorizontal), addDistance(textureCords[7], distVertical),
             };
-        }
-        if (vertexCoord == null) {
-            vertexCoord = vertexVertices;
-        }
-        if (textureCoord == null) {
-            textureCoord = textureVertices;
+        } else {
+            vertexCords = new float[]{
+                    vertexCords[0] / ratioHeight, vertexCords[1] / ratioWidth,
+                    vertexCords[2] / ratioHeight, vertexCords[3] / ratioWidth,
+                    vertexCords[4] / ratioHeight, vertexCords[5] / ratioWidth,
+                    vertexCords[6] / ratioHeight, vertexCords[7] / ratioWidth,
+            };
         }
 
         if (mDisplayVertexBuffer == null || mDisplayTextureBuffer == null) {
             initBuffers();
         }
         mDisplayVertexBuffer.clear();
-        mDisplayVertexBuffer.put(vertexCoord).position(0);
+        mDisplayVertexBuffer.put(vertexCords).position(0);
         mDisplayTextureBuffer.clear();
-        mDisplayTextureBuffer.put(textureCoord).position(0);
+        mDisplayTextureBuffer.put(textureCords).position(0);
     }
+
 
 }
