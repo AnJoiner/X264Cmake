@@ -23,6 +23,7 @@ public class GLCameraActivity extends BaseActivity<ActivityGlCameraBinding> impl
     }
 
     private void initListener() {
+        mViewBinding.cameraCloseBtn.setOnClickListener(this);
         mViewBinding.cameraSwitchBtn.setOnClickListener(this);
         mViewBinding.cameraFilterBtn.setOnClickListener(this);
     }
