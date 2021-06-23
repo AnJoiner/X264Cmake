@@ -63,7 +63,7 @@ public class GLImageBeautyFilter extends GLImageBaseFilter {
             mHeightUniformLoc = GLES20.glGetUniformLocation(mGLProgramId, FRAG_BEAUTY_HEIGHT);
             mOpacityUniformLoc = GLES20.glGetUniformLocation(mGLProgramId, FRAG_BEAUTY_OPACITY);
 
-            setSkinBeautyLevel(1.0f);
+            setMillingSkinLevel(1.0f);
         }
     }
 
@@ -109,7 +109,7 @@ public class GLImageBeautyFilter extends GLImageBaseFilter {
      * 设置磨皮程度
      * @param percent 0.0 ~ 1.0
      */
-    public void setSkinBeautyLevel(float percent) {
+    public void setMillingSkinLevel(float percent) {
         float opacity;
         if (percent <= 0) {
             opacity = 0.0f;
@@ -122,14 +122,11 @@ public class GLImageBeautyFilter extends GLImageBaseFilter {
     /**
      * 根据百分比计算出实际的磨皮程度
      * @param percent 0% ~ 100%
-     * @return
      */
     private float calculateOpacity(float percent) {
         if (percent > 1.0f) {
             percent = 1.0f;
         }
-        float result = (float) (1.0f - (1.0f - percent + 0.02) / 2.0f);
-
-        return result;
+        return (float) (1.0f - (1.0f - percent + 0.02) / 2.0f);
     }
 }

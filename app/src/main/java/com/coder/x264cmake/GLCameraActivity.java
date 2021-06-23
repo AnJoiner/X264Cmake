@@ -1,44 +1,43 @@
 package com.coder.x264cmake;
 
-import android.opengl.GLSurfaceView;
-import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
-import android.widget.FrameLayout;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import com.coder.x264cmake.databinding.ActivityGlCameraBinding;
+import com.coder.x264cmake.module.mvp.ui.base.BaseActivity;
+import com.coder.x264cmake.module.mvp.ui.camera.CameraFilterDialog;
 
-import com.coder.x264cmake.module.camera.render.GLImageRenderer;
-import com.coder.x264cmake.widgets.GLCameraPreview;
 
-import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
+public class GLCameraActivity extends BaseActivity<ActivityGlCameraBinding> implements View.OnClickListener {
 
-public class GLCameraActivity extends AppCompatActivity {
-
-    private GLCameraPreview mGLCameraPreview;
+    private CameraFilterDialog mCameraFilterDialog;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_gl_camera);
-
-        init();
+    protected int getLayoutId() {
+        return R.layout.activity_gl_camera;
     }
 
-    private void init() {
-        initView();
+    @Override
+    protected void init() {
         initListener();
         initData();
     }
 
-    private void initView() {
-        mGLCameraPreview = findViewById(R.id.camera_preview);
+    private void initListener() {
+        mViewBinding.cameraSwitchBtn.setOnClickListener(this);
+        mViewBinding.cameraFilterBtn.setOnClickListener(this);
     }
 
-    private void initListener(){
-
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.camera_close_btn) {
+            finish();
+        } else if (v.getId() == R.id.camera_switch_btn) {
+            // 切换相机镜头
+            mViewBinding.cameraPreview.switchCamera();
+        } else if (v.getId() == R.id.camera_filter_btn) {
+            // 滤镜弹窗
+            popupCameraFilterDialog();
+        }
     }
 
     private void initData() {
@@ -48,18 +47,30 @@ public class GLCameraActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (mGLCameraPreview!=null) mGLCameraPreview.onResume();
+        mViewBinding.cameraPreview.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (mGLCameraPreview!=null) mGLCameraPreview.onPause();
+        mViewBinding.cameraPreview.onPause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mGLCameraPreview!=null) mGLCameraPreview.onRelease();
+        mViewBinding.cameraPreview.onRelease();
     }
+
+    private void popupCameraFilterDialog(){
+        if (mCameraFilterDialog == null){
+            mCameraFilterDialog = new CameraFilterDialog();
+        }
+        if (mCameraFilterDialog.isVisible()){
+            mCameraFilterDialog.dismiss();
+        }else {
+            mCameraFilterDialog.show(getSupportFragmentManager(),"CameraFilterDialog");
+        }
+    }
+
 }

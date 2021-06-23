@@ -24,9 +24,9 @@ public class GLImageBeautySkinFilter extends GLImageBaseFilter {
 
     private int mGrayTexture;
     private int mLookupTexture;
-    private float mLevelRangeInv;
-    private float mLevelBlack;
-    private float mAlpha;
+    private float mLevelRangeInv = 1.040816f;
+    private float mLevelBlack = 0.01960784f;
+    private float mAlpha = 0.5f;
 
     public GLImageBeautySkinFilter(Context context) {
         this(context, VERTEX_SHADER, FileUtils.getShaderFromAssets(context, "shader/beauty/fragment_beauty_skin.glsl"));
@@ -49,10 +49,6 @@ public class GLImageBeautySkinFilter extends GLImageBaseFilter {
             mAlphaLoc = GLES20.glGetUniformLocation(mGLProgramId, FRAG_SKIN_ALPHA);
 
             loadTextures();
-
-            mLevelRangeInv = 1.040816f;
-            mLevelBlack = 0.01960784f;
-            mAlpha = 1.0f;
         } else {
             mGrayTextureLoc = OpenGlUtils.NO_TEXTURE;
             mLookupTextureLoc = OpenGlUtils.NO_TEXTURE;
@@ -100,7 +96,7 @@ public class GLImageBeautySkinFilter extends GLImageBaseFilter {
      * 美肤程度
      * @param level 0 ~ 1.0f
      */
-    public void setBeautyLevel(float level) {
+    public void setBeautySkinLevel(float level) {
         mAlpha = level;
     }
 }

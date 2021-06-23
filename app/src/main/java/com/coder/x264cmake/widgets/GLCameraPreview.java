@@ -132,7 +132,8 @@ public class GLCameraPreview extends FrameLayout {
                     int imageWidth = (cameraOrientation == 90 || cameraOrientation == 270) ? height : width;
                     int imageHeight = (cameraOrientation == 90 || cameraOrientation == 270) ? width : height;
 
-                    if (mGLImageRenderer!=null) mGLImageRenderer.setImageSize(imageWidth, imageHeight);
+                    if (mGLImageRenderer != null)
+                        mGLImageRenderer.setImageSize(imageWidth, imageHeight);
                 }
 
                 @Override
@@ -201,6 +202,12 @@ public class GLCameraPreview extends FrameLayout {
         }
     }
 
+    public void switchCamera() {
+        if (mCameraLoader != null) {
+            mCameraLoader.switchCamera();
+        }
+    }
+
     /**
      * 设置相机的预览格式
      *
@@ -230,7 +237,7 @@ public class GLCameraPreview extends FrameLayout {
         if (mCameraLoader != null) {
             mCameraLoader.pause();
         }
-        if (mGLSurfaceView!=null){
+        if (mGLSurfaceView != null) {
             mGLSurfaceView.onPause();
         }
     }
@@ -239,7 +246,7 @@ public class GLCameraPreview extends FrameLayout {
         if (mCameraLoader != null) {
             mCameraLoader.resume(mDisplayWidth, mDisplayHeight);
         }
-        if (mGLSurfaceView!=null){
+        if (mGLSurfaceView != null) {
             mGLSurfaceView.onResume();
         }
     }
