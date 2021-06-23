@@ -25,20 +25,18 @@ public class Camera1Loader extends ICameraLoader {
     private int cameraId = 0;
     // 是否正在预览
     public boolean isPreviewing = false;
-    // 纹理
-    public SurfaceTexture mSurfaceTexture;
 
     public Camera1Loader(Context context) {
         mContext = context;
     }
 
     @Override
-    public void onPause() {
+    public void pause() {
         release();
     }
 
     @Override
-    public void onResume(int width, int height) {
+    public void resume(int width, int height) {
         setUpCamera();
     }
 
@@ -54,7 +52,7 @@ public class Camera1Loader extends ICameraLoader {
     }
 
     @Override
-    public int getCameraOrientation() {
+    public int getOrientation() {
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         Camera.getCameraInfo(cameraId, cameraInfo);
         final int rotation = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
@@ -122,7 +120,7 @@ public class Camera1Loader extends ICameraLoader {
             }
         });
         // 设置预览方向
-        cameraInstance.setDisplayOrientation(getCameraOrientation());
+        cameraInstance.setDisplayOrientation(getOrientation());
         try {
             if (mSurfaceTexture!=null)
             cameraInstance.setPreviewTexture(mSurfaceTexture);
@@ -197,31 +195,20 @@ public class Camera1Loader extends ICameraLoader {
         }
     }
 
+//    @Override
+//    public void setPreviewType(int previewType) {
+//        super.setPreviewType(previewType);
+//        release();
+//        setUpCamera();
+//    }
+
     private void setPreviewSize(Camera.Parameters parameters) {
         List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
         List<Camera.Size> sizes = new ArrayList<>();
-        int widthRatio;
-        int heightRatio;
-        switch (previewType) {
-            case CAMERA_PREVIEW_16To9:
-                widthRatio = 16;
-                heightRatio = 9;
-                break;
-            case CAMERA_PREVIEW_4To3:
-                widthRatio = 4;
-                heightRatio = 3;
-                break;
-            case CAMERA_PREVIEW_1To1:
-                widthRatio = 1;
-                heightRatio = 1;
-                break;
-            default:
-                return;
-        }
 
         for (Camera.Size previewSize : previewSizes) {
             // 满足设置比例
-            if (previewSize.width * heightRatio == previewSize.height * widthRatio) {
+            if (previewSize.width * mHeightRatio == previewSize.height * mWidthRatio) {
                 sizes.add(previewSize);
             }
         }
@@ -286,6 +273,7 @@ public class Camera1Loader extends ICameraLoader {
         parameters.setPictureSize(fitSize.width, fitSize.height);
     }
 
+    @Override
     public void release() {
         if (cameraInstance != null) {
             cameraInstance.setPreviewCallback(null);

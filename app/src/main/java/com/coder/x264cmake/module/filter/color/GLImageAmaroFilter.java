@@ -1,7 +1,6 @@
 package com.coder.x264cmake.module.filter.color;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.opengl.GLES20;
 
 import com.coder.x264cmake.module.filter.GLImageBaseFilter;

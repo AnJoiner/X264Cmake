@@ -19,22 +19,25 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     private Context mContext;
     // 渲染管理器
     private RendererManager mRendererManager;
-    // 相机加载器
-    private Camera1Loader mCameraLoader;
     // 纹理对象
     private int[] textures;
-
     private SurfaceTexture mSurfaceTexture;
     // 矩阵
     private final float[] mMatrix = new float[16];
+
+    private OnImageRendererCallback mOnImageRendererCallback;
+
+    private int mImageWidth, mImageHeight;
+
+    public void setOnImageRendererCallback(OnImageRendererCallback onImageRendererCallback) {
+        mOnImageRendererCallback = onImageRendererCallback;
+    }
 
     public GLImageRenderer(GLSurfaceView GLSurfaceView) {
         mGLSurfaceView = GLSurfaceView;
         if (mGLSurfaceView != null) {
             mContext = mGLSurfaceView.getContext();
         }
-        // 创建相机
-        resumeCamera();
     }
 
     @Override
@@ -51,10 +54,17 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         // 设置监听
         mSurfaceTexture.setOnFrameAvailableListener(this);
         // 开启预览
-        if (mCameraLoader != null) {
-            mCameraLoader.mSurfaceTexture = mSurfaceTexture;
-            mCameraLoader.setUpCamera();
+        if (mOnImageRendererCallback!=null){
+            mOnImageRendererCallback.onSurfaceCreated(mSurfaceTexture);
         }
+
+        if (mRendererManager != null) {
+            mRendererManager.setImageSize(mImageWidth, mImageHeight);
+        }
+//        if (mCameraLoader != null) {
+//            mCameraLoader.mSurfaceTexture = mSurfaceTexture;
+//            mCameraLoader.setUpCamera();
+//        }
     }
 
     @Override
@@ -104,8 +114,6 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     public void release() {
         // 释放纹理
         releaseTexture();
-        // 释放相机
-        releaseCamera();
         // 释放renderer
         releaseRenderer();
     }
@@ -113,7 +121,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     /**
      * 释放纹理
      */
-    public void releaseTexture() {
+    private void releaseTexture() {
         if (textures != null) {
             OpenGlUtils.deleteTexture(textures);
             textures = null;
@@ -124,40 +132,56 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         }
     }
 
-    /**
-     * 释放相机
-     */
-    public void releaseCamera(){
-        if (mCameraLoader != null) {
-            mCameraLoader.release();
-        }
-    }
-
-    public void resumeCamera(){
-        mCameraLoader = new Camera1Loader(mContext);
-        mCameraLoader.setCameraPreCallback(new ICameraLoader.OnCameraPreCallback() {
-            @Override
-            public void onCameraPreSize(int width, int height) {
-                // 预览大小
-                mRendererManager.setImageSize(height, width);
-                LogUtils.e("onCameraPreSize==>>> width:" + width + ", height:" + height);
-            }
-
-            @Override
-            public void onCameraPreFrame(byte[] data, int width, int height) {
-                // 帧数据返回
-            }
-        });
-    }
 
     /**
-     * 释放相机renderer
+     * 释放renderer
      */
-    public void releaseRenderer() {
-
+    private void releaseRenderer() {
         if (mRendererManager != null) {
             mRendererManager.release();
         }
+    }
+
+//    /**
+//     * 释放相机
+//     */
+//    public void releaseCamera() {
+//        if (mCameraLoader != null) {
+//            mCameraLoader.release();
+//        }
+//    }
+
+//    public void resumeCamera() {
+//        mCameraLoader = new Camera1Loader(mContext);
+//        mCameraLoader.setCameraPreCallback(new ICameraLoader.OnCameraPreCallback() {
+//            @Override
+//            public void onCameraPreSize(int width, int height) {
+//                // 预览大小
+//                mRendererManager.setImageSize(height, width);
+//                LogUtils.e("onCameraPreSize==>>> width:" + width + ", height:" + height);
+//            }
+//
+//            @Override
+//            public void onCameraPreFrame(byte[] data, int width, int height) {
+//                // 帧数据返回
+//            }
+//        });
+//    }
+
+    /**
+     * 设置图像大小
+     *
+     * @param width  宽度
+     * @param height 高度
+     */
+    public void setImageSize(int width, int height) {
+        mImageWidth = width;
+        mImageHeight = height;
+    }
+
+
+    public interface OnImageRendererCallback{
+        void onSurfaceCreated(SurfaceTexture surfaceTexture);
     }
 
 }

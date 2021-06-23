@@ -56,15 +56,15 @@ public class Camera2Loader extends ICameraLoader {
     }
 
     @Override
-    public void onResume(int width, int height) {
+    public void resume(int width, int height) {
         viewWidth = width;
         viewHeight = height;
         setUpCamera();
     }
 
     @Override
-    public void onPause() {
-        releaseCamera();
+    public void pause() {
+        release();
     }
 
     @Override
@@ -74,12 +74,28 @@ public class Camera2Loader extends ICameraLoader {
         } else if (cameraFacing == CameraCharacteristics.LENS_FACING_FRONT) {
             cameraFacing = CameraCharacteristics.LENS_FACING_BACK;
         }
-        releaseCamera();
+        release();
         setUpCamera();
     }
 
     @Override
-    public int getCameraOrientation() {
+    public void release() {
+        if (imageReader != null) {
+            imageReader.close();
+            imageReader = null;
+        }
+        if (cameraInstance != null) {
+            cameraInstance.close();
+            cameraInstance = null;
+        }
+        if (captureSession != null) {
+            captureSession.close();
+            captureSession = null;
+        }
+    }
+
+    @Override
+    public int getOrientation() {
         final int rotation = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
@@ -135,20 +151,6 @@ public class Camera2Loader extends ICameraLoader {
         }
     }
 
-    private void releaseCamera() {
-        if (imageReader != null) {
-            imageReader.close();
-            imageReader = null;
-        }
-        if (cameraInstance != null) {
-            cameraInstance.close();
-            cameraInstance = null;
-        }
-        if (captureSession != null) {
-            captureSession.close();
-            captureSession = null;
-        }
-    }
 
     /**
      * 获取相机id
@@ -227,7 +229,7 @@ public class Camera2Loader extends ICameraLoader {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             Size[] outputSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
                     .getOutputSizes(ImageFormat.YUV_420_888);
-            int orientation = getCameraOrientation();
+            int orientation = getOrientation();
             int maxPreviewWidth = (orientation == 90 || orientation == 270) ? viewHeight : viewWidth;
             int maxPreviewHeight = (orientation == 90 || orientation == 270) ? viewWidth : viewHeight;
 

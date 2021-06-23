@@ -10,16 +10,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.coder.x264cmake.module.camera.render.GLImageRenderer;
+import com.coder.x264cmake.widgets.GLCameraPreview;
 
 import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 
 public class GLCameraActivity extends AppCompatActivity {
 
-    private GLSurfaceView mGLSurfaceView;
-    // 渲染render
-    private GLImageRenderer mGLImageRenderer;
-
-    private FrameLayout mPreviewLayout;
+    private GLCameraPreview mGLCameraPreview;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -37,10 +34,7 @@ public class GLCameraActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        mPreviewLayout =  findViewById(R.id.preview_layout);
-        mGLSurfaceView = new GLSurfaceView(this);
-        mGLSurfaceView.setId(R.id.camera_surface);
-        mPreviewLayout.addView(mGLSurfaceView);
+        mGLCameraPreview = findViewById(R.id.camera_preview);
     }
 
     private void initListener(){
@@ -48,32 +42,24 @@ public class GLCameraActivity extends AppCompatActivity {
     }
 
     private void initData() {
-        mGLSurfaceView.setEGLContextClientVersion(2);
-        mGLImageRenderer = new GLImageRenderer(mGLSurfaceView);
 
-        mGLSurfaceView.setRenderer(mGLImageRenderer);
-        mGLSurfaceView.setRenderMode(RENDERMODE_WHEN_DIRTY);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mGLSurfaceView.onResume();
-        mGLImageRenderer.resumeCamera();
-//        mCamera1Loader.onResume(mGLSurfaceView.getWidth(),mGLSurfaceView.getHeight());
+        if (mGLCameraPreview!=null) mGLCameraPreview.onResume();
     }
 
     @Override
     protected void onPause() {
-//        mCameraLoader.releaseCamera();
-        mGLImageRenderer.releaseCamera();
         super.onPause();
-        mGLSurfaceView.onPause();
+        if (mGLCameraPreview!=null) mGLCameraPreview.onPause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mGLImageRenderer.release();
+        if (mGLCameraPreview!=null) mGLCameraPreview.onRelease();
     }
 }

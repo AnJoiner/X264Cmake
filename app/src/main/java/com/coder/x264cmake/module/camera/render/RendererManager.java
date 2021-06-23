@@ -2,13 +2,11 @@ package com.coder.x264cmake.module.camera.render;
 
 
 import android.content.Context;
-import android.util.Log;
 import android.util.SparseArray;
 
 import com.coder.x264cmake.module.filter.GLImageBaseFilter;
 import com.coder.x264cmake.module.filter.GLImageOESFilter;
 import com.coder.x264cmake.module.filter.beauty.GLImageBeautyFilter;
-import com.coder.x264cmake.module.filter.color.GLImageAmaroFilter;
 import com.coder.x264cmake.utils.TextureCoordinateUtils;
 
 import java.nio.FloatBuffer;
@@ -72,7 +70,7 @@ public class RendererManager {
 
         mFilterArrays.put(RendererIndex.OES_INDEX, new GLImageOESFilter(mContext));
         mFilterArrays.put(RendererIndex.BEAUTY_INDEX, new GLImageBeautyFilter(mContext));
-        mFilterArrays.put(RendererIndex.COLOR_INDEX, new GLImageAmaroFilter(mContext));
+//        mFilterArrays.put(RendererIndex.COLOR_INDEX, new GLImageAmaroFilter(mContext));
 //        mFilterArrays.put(RendererIndex.EFFECT_INDEX, new GLImageEffectSoulStuffFilter(mContext));
         mFilterArrays.put(RendererIndex.PREVIEW_INDEX, new GLImageBaseFilter(mContext));
     }
@@ -181,8 +179,8 @@ public class RendererManager {
                 .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
 
         // 2. 颜色滤镜
-        currentTexture = mFilterArrays.get(RendererIndex.COLOR_INDEX)
-                .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
+//        currentTexture = mFilterArrays.get(RendererIndex.COLOR_INDEX)
+//                .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
 
         // 3. 特效滤镜
 //        currentTexture = mFilterArrays.get(RendererIndex.EFFECT_INDEX)
