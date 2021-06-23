@@ -113,9 +113,8 @@ public class Camera1Loader extends ICameraLoader {
         cameraInstance.setPreviewCallback(new Camera.PreviewCallback() {
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
-                Camera.Size size = camera.getParameters().getPreviewSize();
-                if (mOnCameraPreCallback != null) {
-                    mOnCameraPreCallback.onCameraPreFrame(data, size.width, size.height);
+                if (mOnCameraPreCallback != null && isPreviewing) {
+                    mOnCameraPreCallback.onCameraPreFrame(data, mImageWidth, mImageHeight);
                 }
             }
         });
@@ -225,6 +224,8 @@ public class Camera1Loader extends ICameraLoader {
 //        }
 
         if (mOnCameraPreCallback != null) {
+            mImageWidth = size.width;
+            mImageHeight = size.height;
             mOnCameraPreCallback.onCameraPreSize(size.width,size.height);
         }
         parameters.setPreviewSize(size.width, size.height);

@@ -6,6 +6,8 @@ import android.opengl.GLES20;
 import com.coder.x264cmake.module.filter.GLImageBaseFilter;
 import com.coder.x264cmake.utils.FileUtils;
 
+import java.nio.FloatBuffer;
+
 /**
  * @auther: AnJoiner
  * @datetime: 2021/6/20
@@ -24,6 +26,8 @@ public class GLImageBeautyFilter extends GLImageBaseFilter {
 
     // 高斯模糊处理的图像缩放倍数
     private float mBlurScale = 1.0f;
+    // 美肤滤镜
+    private GLImageBeautySkinFilter mGLImageBeautySkinFilter;
 
     public GLImageBeautyFilter(Context context) {
         this(context, VERTEX_SHADER, FileUtils.getShaderFromAssets(context,
@@ -32,11 +36,23 @@ public class GLImageBeautyFilter extends GLImageBaseFilter {
 
     public GLImageBeautyFilter(Context context, String vertexShader, String fragmentShader) {
         super(context, vertexShader, fragmentShader);
+        mGLImageBeautySkinFilter = new GLImageBeautySkinFilter(context);
     }
 
     @Override
     public void onCreateFrameBuffer(int width, int height) {
         super.onCreateFrameBuffer((int) (width * mBlurScale), (int)(height *mBlurScale));
+        if (mGLImageBeautySkinFilter != null) {
+            mGLImageBeautySkinFilter.onCreateFrameBuffer(width, height);
+        }
+    }
+
+    @Override
+    public void onDestroyFrameBuffer() {
+        super.onDestroyFrameBuffer();
+        if (mGLImageBeautySkinFilter != null) {
+            mGLImageBeautySkinFilter.onDestroyFrameBuffer();
+        }
     }
 
     @Override
@@ -57,11 +73,36 @@ public class GLImageBeautyFilter extends GLImageBaseFilter {
         // 宽高变更时需要重新设置宽高值
         setInteger(mWidthUniformLoc, (int) (width * mBlurScale));
         setInteger(mHeightUniformLoc, (int)(height * mBlurScale));
+
+        if (mGLImageBeautySkinFilter != null) {
+            mGLImageBeautySkinFilter.onSurfaceChanged(width, height);
+        }
     }
 
     @Override
     public void onDisplaySizeChanged(int width, int height) {
         super.onDisplaySizeChanged(width, height);
+        if (mGLImageBeautySkinFilter != null) {
+            mGLImageBeautySkinFilter.onDisplaySizeChanged(width, height);
+        }
+    }
+
+    @Override
+    public int onDrawFrame(int textureId, FloatBuffer vertexFloatBuffer, FloatBuffer textureFloatBuffer, boolean isFrameBuffer) {
+        int currentTexture = textureId;
+        if (mGLImageBeautySkinFilter != null) {
+            currentTexture = mGLImageBeautySkinFilter.onDrawFrame(currentTexture, vertexFloatBuffer, textureFloatBuffer,isFrameBuffer);
+        }
+        return super.onDrawFrame(currentTexture, vertexFloatBuffer, textureFloatBuffer, isFrameBuffer);
+    }
+
+    @Override
+    public void release() {
+        super.release();
+        if (mGLImageBeautySkinFilter != null) {
+            mGLImageBeautySkinFilter.release();
+            mGLImageBeautySkinFilter = null;
+        }
     }
 
     /**

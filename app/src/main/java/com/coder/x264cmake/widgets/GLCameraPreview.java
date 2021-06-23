@@ -19,6 +19,7 @@ import com.coder.x264cmake.module.camera.Camera2Loader;
 import com.coder.x264cmake.module.camera.ICameraLoader;
 import com.coder.x264cmake.module.camera.anotations.CameraPreviewType;
 import com.coder.x264cmake.module.camera.render.GLImageRenderer;
+import com.coder.x264cmake.utils.DensityUtils;
 import com.coder.x264cmake.utils.LogUtils;
 
 import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
@@ -167,6 +168,11 @@ public class GLCameraPreview extends FrameLayout {
     private void initSurfaceView() {
         if (supportsOpenGLES2(mContext)) {
             mGLSurfaceView.setEGLContextClientVersion(2);
+            // 添加圆角显示
+            if (Build.VERSION.SDK_INT >= 21) {
+                mGLSurfaceView.setOutlineProvider(new RoundOutlineProvider(DensityUtils.dp2px(8)));
+                mGLSurfaceView.setClipToOutline(true);
+            }
             mGLSurfaceView.setRenderer(mGLImageRenderer);
             mGLSurfaceView.setRenderMode(RENDERMODE_WHEN_DIRTY);
             mGLSurfaceView.setId(R.id.camera_surface);

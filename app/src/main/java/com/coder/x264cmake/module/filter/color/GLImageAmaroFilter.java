@@ -62,11 +62,11 @@ public class GLImageAmaroFilter extends GLImageBaseFilter {
             mTextures = new int[3];
         }
         mTextures[0] = OpenGlUtils.loadTexture(FileUtils.getImageFromAssetsFile(mContext,
-                "filter/amaro/blowout.png"));
+                "filter/color/amaro/blowout.png"));
         mTextures[1] = OpenGlUtils.loadTexture(FileUtils.getImageFromAssetsFile(mContext,
-                "filter/amaro/overlay.png"));
+                "filter/color/amaro/overlay.png"));
         mTextures[2] = OpenGlUtils.loadTexture(FileUtils.getImageFromAssetsFile(mContext,
-                "filter/amaro/map.png"));
+                "filter/color/amaro/map.png"));
     }
 
 

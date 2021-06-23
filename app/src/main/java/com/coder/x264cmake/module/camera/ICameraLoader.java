@@ -12,6 +12,10 @@ public abstract class ICameraLoader {
     // 宽高比
     public float mWidthRatio = 16;
     public float mHeightRatio = 9;
+
+    public int mImageWidth;
+    public int mImageHeight;
+
     // 纹理
     public SurfaceTexture mSurfaceTexture;
 
