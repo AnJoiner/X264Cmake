@@ -1,4 +1,4 @@
-package com.coder.x264cmake.module.mvp.ui.camera;
+package com.coder.x264cmake.module.mvp.ui.camera.dialog;
 
 import android.app.Dialog;
 import android.view.Gravity;
@@ -9,9 +9,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.coder.x264cmake.R;
 import com.coder.x264cmake.databinding.DialogCameraFilterBinding;
 import com.coder.x264cmake.module.mvp.model.TableEntity;
-import com.coder.x264cmake.module.mvp.ui.adapter.CameraFilterAdapter;
+import com.coder.x264cmake.module.mvp.ui.camera.adapter.CameraFilterAdapter;
 import com.coder.x264cmake.module.mvp.ui.base.BaseDialog;
-import com.coder.x264cmake.utils.LogUtils;
 import com.flyco.tablayout.listener.CustomTabEntity;
 import com.flyco.tablayout.listener.OnTabSelectListener;
 

@@ -1,4 +1,4 @@
-package com.coder.x264cmake.module.mvp.ui.adapter;
+package com.coder.x264cmake.module.mvp.ui.camera.adapter;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;

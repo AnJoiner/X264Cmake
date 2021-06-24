@@ -1,15 +1,23 @@
-package com.coder.x264cmake;
+package com.coder.x264cmake.module.mvp.ui.camera.activity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 
+import com.coder.x264cmake.R;
 import com.coder.x264cmake.databinding.ActivityGlCameraBinding;
 import com.coder.x264cmake.module.mvp.ui.base.BaseActivity;
-import com.coder.x264cmake.module.mvp.ui.camera.CameraFilterDialog;
+import com.coder.x264cmake.module.mvp.ui.camera.dialog.CameraFilterDialog;
 
 
 public class GLCameraActivity extends BaseActivity<ActivityGlCameraBinding> implements View.OnClickListener {
 
     private CameraFilterDialog mCameraFilterDialog;
+
+    public static void start(Context context) {
+        Intent starter = new Intent(context, GLCameraActivity.class);
+        context.startActivity(starter);
+    }
 
     @Override
     protected int getLayoutId() {

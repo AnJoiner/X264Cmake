@@ -1,13 +1,10 @@
 package com.coder.x264cmake;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,19 +12,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.coder.x264cmake.annotation.YUVFormat;
 import com.coder.x264cmake.jni.X264Encode;
 import com.coder.x264cmake.utils.FileUtils;
-import com.coder.x264cmake.utils.LogUtils;
 import com.coremedia.iso.boxes.Container;
 import com.googlecode.mp4parser.FileDataSourceImpl;
 import com.googlecode.mp4parser.authoring.Movie;
 import com.googlecode.mp4parser.authoring.builder.DefaultMp4Builder;
 import com.googlecode.mp4parser.authoring.tracks.h264.H264TrackImpl;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+
 
 /**
  * @author: AnJoiner
  * @datetime: 21-4-10
  */
-public class MainActivity extends AppCompatActivity {
+public class H264Activity extends AppCompatActivity {
 
     private static final int REQUEST_CODE = 0x01;
     // x264编码
@@ -43,6 +44,12 @@ public class MainActivity extends AppCompatActivity {
     private int height = 1280;
 
     private Button mExecuteBtn;
+
+
+    public static void start(Context context) {
+        Intent starter = new Intent(context, H264Activity.class);
+        context.startActivity(starter);
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

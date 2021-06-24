@@ -1,4 +1,4 @@
-package com.coder.x264cmake;
+package com.coder.x264cmake.module.mvp.ui.camera.activity;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +13,7 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.coder.x264cmake.R;
 import com.coder.x264cmake.databinding.ActivityCameraBinding;
 import com.coder.x264cmake.jni.RtmpPusher;
 import com.coder.x264cmake.jni.YuvCore;

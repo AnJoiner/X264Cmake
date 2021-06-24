@@ -28,12 +28,12 @@
             android:name="design_height_in_dp"
             android:value="640"/>
 
-        <activity android:name=".MainActivity"
+        <activity android:name=".H264Activity"
             android:screenOrientation="portrait">
 
         </activity>
         <!--拍摄-->
-        <activity android:name=".CameraActivity"
+        <activity android:name=".module.mvp.ui.camera.activity.CameraActivity"
             android:screenOrientation="portrait">
 <!--            <intent-filter>-->
 <!--                <action android:name="android.intent.action.MAIN" />-->
@@ -42,7 +42,11 @@
 <!--            </intent-filter>-->
         </activity>
 
-        <activity android:name=".GLCameraActivity"
+        <activity android:name=".module.mvp.ui.camera.activity.GLCameraActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity android:name=".module.mvp.ui.home.activity.HomeActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -7,6 +7,22 @@ android {
     compileSdkVersion 30
     buildToolsVersion "30.0.2"
 
+    signingConfigs {
+        release {
+            keyAlias 'x264cmake'
+            keyPassword 'x264cmake'
+            storeFile file('../keystore/x264cmake.jks')
+            storePassword 'x264cmake'
+        }
+        debug {
+            keyAlias 'x264cmake'
+            keyPassword 'x264cmake'
+            storeFile file('../keystore/x264cmake.jks')
+            storePassword 'x264cmake'
+        }
+
+    }
+
     defaultConfig {
         applicationId "com.coder.x264cmake"
         minSdkVersion 19
@@ -26,9 +42,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     externalNativeBuild {

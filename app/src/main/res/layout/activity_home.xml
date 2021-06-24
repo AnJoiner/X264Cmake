@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/black"
+    android:gravity="center"
+    style="@style/MDMatchMatch.Vertical">
+
+    <TextView
+        android:id="@+id/h264_btn"
+        style="@style/MDWrapWrap"
+        android:textColor="@color/white"
+        android:padding="@dimen/dp_10"
+        android:textSize="@dimen/sp_15"
+        android:text="H264编码" />
+
+    <TextView
+        android:id="@+id/beauty_filter_btn"
+        android:padding="@dimen/dp_10"
+        style="@style/MDWrapWrap"
+        android:textColor="@color/white"
+        android:textSize="@dimen/sp_15"
+        android:text="美颜相机" />
+
+</LinearLayout>
