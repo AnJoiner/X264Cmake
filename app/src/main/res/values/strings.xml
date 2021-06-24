@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">X264Cmake</string>
+    <string name="str_cancel">取消</string>
+    <string name="str_sure">确定</string>
 </resources>

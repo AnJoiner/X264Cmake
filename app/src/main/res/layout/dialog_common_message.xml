@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/MDWrapWrap.Vertical">
+    android:background="@drawable/dialog_common_message_bg"
+    style="@style/MDMatchWrap.Vertical">
 
     <LinearLayout
-        android:layout_width="@dimen/dp_302"
+        android:layout_width="match_parent"
         android:orientation="vertical"
         android:padding="@dimen/dp_15"
-        android:background="@drawable/dialog_common_message_bg"
         android:layout_height="wrap_content">
 
         <TextView
@@ -21,37 +21,44 @@
         <TextView
             android:id="@+id/content_text"
             tools:text="内容展示区域"
-            android:maxLines="3"
+            android:lines="3"
             android:textSize="@dimen/sp_14"
             android:layout_marginTop="@dimen/dp_8"
             android:textColor="@color/black"
             style="@style/MDMatchWrap"/>
 
 
-        <LinearLayout
-            android:layout_marginTop="@dimen/dp_10"
-            style="@style/MDMatchWrap.Horizontal">
-
-            <TextView
-                android:text="取消"
-                android:gravity="center"
-                android:textSize="@dimen/sp_14"
-                android:textColor="@color/white"
-                style="@style/MDAutoWrap"/>
-
-            <View
-                android:layout_width="1px"
-                android:background="@color/color_black_50"
-                android:layout_height="match_parent"/>
-
-            <TextView
-                android:text="确定"
-                android:gravity="center"
-                android:textSize="@dimen/sp_14"
-                android:textColor="@color/black"
-                style="@style/MDAutoWrap"/>
-        </LinearLayout>
-
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:background="@color/color_e6"
+        android:layout_height="@dimen/dp_1"/>
+
+    <LinearLayout
+        style="@style/MDMatchWrap.Horizontal">
+
+        <TextView
+            android:id="@+id/negative_btn"
+            android:text="@string/str_cancel"
+            android:gravity="center"
+            android:textSize="@dimen/sp_14"
+            android:layout_height="@dimen/dp_40"
+            android:textColor="@color/color_3"
+            style="@style/MDAutoWrap"/>
+
+        <View
+            android:layout_width="@dimen/dp_1"
+            android:background="@color/color_e6"
+            android:layout_height="match_parent"/>
+
+        <TextView
+            android:id="@+id/positive_btn"
+            android:text="@string/str_sure"
+            android:gravity="center"
+            android:textSize="@dimen/sp_14"
+            android:layout_height="@dimen/dp_40"
+            android:textColor="@color/color_f22e54"
+            style="@style/MDAutoWrap"/>
+    </LinearLayout>
 </LinearLayout>

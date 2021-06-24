@@ -14,6 +14,8 @@ import com.coder.x264cmake.module.mvp.ui.common.dialog.CommonMessageDialog;
 import com.coder.x264cmake.utils.ToastUtils;
 
 import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnNeverAskAgain;
+import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
 
 /**
@@ -63,14 +65,14 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
         GLCameraActivity.start(this);
     }
 
-    @NeedsPermission({Manifest.permission.CAMERA,
+    @OnPermissionDenied({Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.WRITE_EXTERNAL_STORAGE})
     void onBeautyDenied(){
         popupCommonMessageDialog();
     }
 
-    @NeedsPermission({Manifest.permission.CAMERA,
+    @OnNeverAskAgain({Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.WRITE_EXTERNAL_STORAGE})
     void onNeverAskAgain(){
@@ -80,6 +82,11 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
     private void popupCommonMessageDialog(){
         if (mCommonMessageDialog == null){
             mCommonMessageDialog = new CommonMessageDialog();
+            mCommonMessageDialog.setOnCommonMessageClickListener(isPositive -> {
+                if (isPositive){
+                        HomeActivityPermissionsDispatcher.showBeautyWithPermissionCheck(this);
+                }
+            });
         }
         if (mCommonMessageDialog.isVisible()){
             mCommonMessageDialog.dismiss();
