@@ -238,4 +238,15 @@ public class OpenGlUtils {
         return validateStatus[0] != 0;
     }
 
+    public static void bindTexture(int location, int texture, int index) {
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + index);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture);
+        GLES20.glUniform1i(location, index);
+    }
+
+    public static void bindTexture(int location, int textureType , int texture, int index) {
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + index);
+        GLES20.glBindTexture(textureType, texture);
+        GLES20.glUniform1i(location, index);
+    }
 }

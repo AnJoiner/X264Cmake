@@ -12,6 +12,7 @@ public class GLImageAmaroFilter extends GLImageBaseFilter {
     private static final String FRAG_AMARO_BLOWOUT = "blowoutTexture";
     private static final String FRAG_AMARO_OVERLAY = "overlayTexture";
     private static final String FRAG_AMARO_MAP = "mapTexture";
+
     private static final String FRAG_AMARO_STRENGTH = "strength";
 
     private int mStrengthUniformLoc;
@@ -22,7 +23,7 @@ public class GLImageAmaroFilter extends GLImageBaseFilter {
     private int[] mUniformLocs;
 
     public GLImageAmaroFilter(Context context) {
-        this(context, VERTEX_SHADER, FileUtils.getShaderFromAssets(context, "shader/color/amaro.glsl"));
+        this(context, VERTEX_SHADER, FileUtils.getShaderFromAssets(context, "shader/color/fragment_amaro.glsl"));
     }
 
     public GLImageAmaroFilter(Context context, String vertexShader, String fragmentShader) {
@@ -41,7 +42,7 @@ public class GLImageAmaroFilter extends GLImageBaseFilter {
 
             mStrengthUniformLoc = GLES20.glGetUniformLocation(mGLProgramId, FRAG_AMARO_STRENGTH);
 
-            setStrength();
+//            setStrength();
             loadTextures();
         }else {
             mUniformLocs[0] = OpenGlUtils.NO_TEXTURE;
@@ -51,7 +52,7 @@ public class GLImageAmaroFilter extends GLImageBaseFilter {
     }
 
     private void setStrength(){
-        setFloat(mStrengthUniformLoc, mStrength);
+//        setFloat(mStrengthUniformLoc, mStrength);
     }
 
     /**
@@ -71,23 +72,20 @@ public class GLImageAmaroFilter extends GLImageBaseFilter {
 
 
     @Override
-    protected void onPreDraw() {
-        super.onPreDraw();
-
-        for (int i = 0; i < mTextures.length && mTextures[i] != OpenGlUtils.NO_TEXTURE; i++) {
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + (i+2));
-            GLES20.glBindTexture(getTextureType(), mTextures[i]);
-            GLES20.glUniform1i(mUniformLocs[i], (i+2));
-        }
+    protected void onPreExtra() {
+        super.onPreExtra();
     }
 
     @Override
-    protected void onPostDraw() {
-        super.onPostDraw();
-        for (int i = 0; i < mTextures.length && mTextures[i] != OpenGlUtils.NO_TEXTURE; i++) {
-            GLES20.glBindTexture(mTextures[i],GLES20.GL_NONE);
+    protected void onPreDraw() {
+        super.onPreDraw();
+
+        for (int i = 0; i < mTextures.length ; i++) {
+            OpenGlUtils.bindTexture(mUniformLocs[i],getTextureType(), mTextures[i], i+1);
         }
+        GLES20.glUniform1f(mStrengthUniformLoc, mStrength);
     }
+
 
     @Override
     public void release() {

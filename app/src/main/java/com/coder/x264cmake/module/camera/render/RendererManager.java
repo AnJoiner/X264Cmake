@@ -7,6 +7,8 @@ import android.util.SparseArray;
 import com.coder.x264cmake.module.filter.GLImageBaseFilter;
 import com.coder.x264cmake.module.filter.GLImageOESFilter;
 import com.coder.x264cmake.module.filter.beauty.GLImageBeautyFilter;
+import com.coder.x264cmake.module.filter.color.GLImageAntiqueFilter;
+import com.coder.x264cmake.module.filter.color.GLImageBlackCatFilter;
 import com.coder.x264cmake.utils.TextureCoordinateUtils;
 
 import java.nio.FloatBuffer;
@@ -44,7 +46,7 @@ public class RendererManager {
     }
 
 
-    protected void init(){
+    protected void init() {
         initBuffers();
         initImageFilters();
     }
@@ -65,12 +67,12 @@ public class RendererManager {
     /**
      * 初始化滤镜
      */
-    public void initImageFilters(){
+    public void initImageFilters() {
         releaseImageFilters();
 
         mFilterArrays.put(RendererIndex.OES_INDEX, new GLImageOESFilter(mContext));
         mFilterArrays.put(RendererIndex.BEAUTY_INDEX, new GLImageBeautyFilter(mContext));
-//        mFilterArrays.put(RendererIndex.COLOR_INDEX, new GLImageAmaroFilter(mContext));
+        mFilterArrays.put(RendererIndex.COLOR_INDEX, new GLImageAntiqueFilter(mContext));
 //        mFilterArrays.put(RendererIndex.EFFECT_INDEX, new GLImageEffectSoulStuffFilter(mContext));
         mFilterArrays.put(RendererIndex.PREVIEW_INDEX, new GLImageBaseFilter(mContext));
     }
@@ -79,10 +81,10 @@ public class RendererManager {
     /**
      * 释放滤镜
      */
-    public void releaseImageFilters(){
+    public void releaseImageFilters() {
         for (int i = 0; i < RendererIndex.RENDERER_COUNT; i++) {
             GLImageBaseFilter filter = mFilterArrays.get(i);
-            if (filter!= null){
+            if (filter != null) {
                 filter.release();
             }
         }
@@ -101,7 +103,7 @@ public class RendererManager {
             mTextureBuffer.clear();
             mTextureBuffer = null;
         }
-        if (mDisplayVertexBuffer!=null){
+        if (mDisplayVertexBuffer != null) {
             mDisplayVertexBuffer.clear();
             mDisplayVertexBuffer = null;
         }
@@ -122,41 +124,61 @@ public class RendererManager {
 
     /**
      * 设置窗口大小
-     * @param width 宽度
+     *
+     * @param width  宽度
      * @param height 高度
      */
-    public void setDisplaySize(int width, int height){
+    public void setDisplaySize(int width, int height) {
         mDisplayWidth = width;
         mDisplayHeight = height;
-        if (mImageWidth!=0 && mImageHeight != 0){
+        if (mImageWidth != 0 && mImageHeight != 0) {
             adjustImageScaling();
-//            calculateSize();
             onFilterChanged();
         }
     }
 
     /**
      * 设置图像大小
-     * @param width 宽度
+     *
+     * @param width  宽度
      * @param height 高度
      */
-    public void setImageSize(int width, int height){
+    public void setImageSize(int width, int height) {
         mImageWidth = width;
         mImageHeight = height;
-        if (mDisplayWidth!= 0 && mDisplayHeight!=0){
+        if (mDisplayWidth != 0 && mDisplayHeight != 0) {
             adjustImageScaling();
-//            calculateSize();
             onFilterChanged();
         }
     }
 
     /**
+     * 切换动态滤镜
+     *
+     * @param colorFilter 颜色滤镜
+     */
+    public synchronized void switchColorFilter(GLImageBaseFilter colorFilter) {
+        if (mFilterArrays.get(RendererIndex.COLOR_INDEX) != null) {
+            mFilterArrays.get(RendererIndex.COLOR_INDEX).release();
+            mFilterArrays.put(RendererIndex.COLOR_INDEX, null);
+        }
+        if (colorFilter == null) {
+            return;
+        }
+        colorFilter.onSurfaceChanged(mImageWidth, mImageHeight);
+        colorFilter.onCreateFrameBuffer(mImageWidth, mImageHeight);
+        colorFilter.onDisplaySizeChanged(mDisplayWidth, mDisplayHeight);
+        mFilterArrays.put(RendererIndex.COLOR_INDEX, colorFilter);
+    }
+
+    /**
      * 滤镜渲染绘制
+     *
      * @param inputTexture 输入纹理
-     * @param matrix 变换矩阵
+     * @param matrix       变换矩阵
      * @return 最终的纹理id
      */
-    public int drawFrame(int inputTexture, float[] matrix){
+    public int drawFrame(int inputTexture, float[] matrix) {
         int currentTexture = inputTexture;
         // 判断OES滤镜和预览滤镜是否存在，两者必须同事满足
         if (mFilterArrays.get(RendererIndex.OES_INDEX) == null
@@ -165,7 +187,7 @@ public class RendererManager {
         }
         // 设置变换矩阵
         if (mFilterArrays.get(RendererIndex.OES_INDEX) instanceof GLImageOESFilter) {
-            ((GLImageOESFilter)mFilterArrays.get(RendererIndex.OES_INDEX)).setMatrix(matrix);
+            ((GLImageOESFilter) mFilterArrays.get(RendererIndex.OES_INDEX)).setMatrix(matrix);
         }
 
         // OES输入渲染
@@ -175,12 +197,16 @@ public class RendererManager {
         // 其他滤镜
 
         // 1. 美颜滤镜
-        currentTexture = mFilterArrays.get(RendererIndex.BEAUTY_INDEX)
-                .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
+        if (mFilterArrays.get(RendererIndex.BEAUTY_INDEX) != null) {
+            currentTexture = mFilterArrays.get(RendererIndex.BEAUTY_INDEX)
+                    .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer, true);
+        }
 
         // 2. 颜色滤镜
-//        currentTexture = mFilterArrays.get(RendererIndex.COLOR_INDEX)
-//                .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
+        if (mFilterArrays.get(RendererIndex.COLOR_INDEX) != null) {
+            currentTexture = mFilterArrays.get(RendererIndex.COLOR_INDEX)
+                    .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer, true);
+        }
 
         // 3. 特效滤镜
 //        currentTexture = mFilterArrays.get(RendererIndex.EFFECT_INDEX)
@@ -188,7 +214,7 @@ public class RendererManager {
 
         // 预览输出渲染
         currentTexture = mFilterArrays.get(RendererIndex.PREVIEW_INDEX)
-                .onDrawFrame(currentTexture,mDisplayVertexBuffer, mDisplayTextureBuffer, false);
+                .onDrawFrame(currentTexture, mDisplayVertexBuffer, mDisplayTextureBuffer, false);
 
         return currentTexture;
     }
@@ -197,7 +223,7 @@ public class RendererManager {
      * 调整滤镜变换
      */
     private void onFilterChanged() {
-        for (int i = 0; i < RendererIndex.RENDERER_COUNT ; i++) {
+        for (int i = 0; i < RendererIndex.RENDERER_COUNT; i++) {
             if (mFilterArrays.get(i) != null) {
                 mFilterArrays.get(i).onSurfaceChanged(mImageWidth, mImageHeight);
                 // 到显示之前都需要创建FBO，这里限定是防止创建多余的FBO，节省GPU资源
@@ -209,29 +235,21 @@ public class RendererManager {
         }
     }
 
-    private void calculateSize(){
-        float ratioMax = Math.min((float) mDisplayWidth / mImageWidth,
-                (float) mDisplayHeight / mImageHeight);
-
-        mDisplayWidth = (int) (ratioMax * mImageWidth);
-        mDisplayHeight = (int) (ratioMax * mImageHeight);
-
-    }
 
     private float addDistance(float coordinate, float distance) {
         return coordinate == 0.0f ? distance : 1 - distance;
     }
 
     private void adjustImageScaling() {
-        float ratio1 = ((float)mDisplayWidth )/ mImageWidth;
-        float ratio2 = ((float)mDisplayHeight) / mImageHeight;
+        float ratio1 = ((float) mDisplayWidth) / mImageWidth;
+        float ratio2 = ((float) mDisplayHeight) / mImageHeight;
 
         float ratioMax = Math.max(ratio1, ratio2);
         int imageWidthNew = Math.round(mImageWidth * ratioMax);
         int imageHeightNew = Math.round(mImageHeight * ratioMax);
 
-        float ratioWidth = imageWidthNew / ((float)mDisplayWidth );
-        float ratioHeight = imageHeightNew / ((float)mDisplayHeight);
+        float ratioWidth = imageWidthNew / ((float) mDisplayWidth);
+        float ratioHeight = imageHeightNew / ((float) mDisplayHeight);
 
         float[] vertexCords = TextureCoordinateUtils.vertices;
         float[] textureCords = TextureCoordinateUtils.texCoords;

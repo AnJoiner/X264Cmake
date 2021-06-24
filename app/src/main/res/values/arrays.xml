@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="filter_titles">
-        <item>美颜</item>
-        <item>美妆</item>
-        <item>动态贴纸</item>
+        <item>人像</item>
+        <item>风景</item>
+        <item>美食</item>
     </string-array>
+
 </resources>

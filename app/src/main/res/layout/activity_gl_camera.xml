@@ -26,6 +26,7 @@
 
             <ImageView
                 style="@style/MDWrapWrap"
+                android:scaleType="centerInside"
                 android:src="@drawable/ic_close_camera" />
 
         </LinearLayout>

@@ -1,0 +1,303 @@
+{
+  "beauty_list": [
+    {
+      "items": [
+        {
+          "id": 1,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017162857043-capa_edit_beauty_buffing_c.png",
+          "name": "磨皮",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.3
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017162857043-capa_edit_beauty_buffing_c.png",
+      "group_name": "磨皮"
+    },
+    {
+      "items": [
+        {
+          "id": 3,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017162935333-capa_edit_beauty_face_lift_c.png",
+          "name": "瘦脸",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.5
+        },
+        {
+          "id": 10,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163058161-capa_edit_beauty_shouxiaba_c.png",
+          "name": "收下巴",
+          "max_strength": 1.0,
+          "min_strength": -1.0,
+          "default_strength": 0.0
+        },
+        {
+          "id": 11,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163115358-capa_edit_beauty_short_face_c.png",
+          "name": "短脸",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.0
+        },
+        {
+          "id": 5,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163134048-capa_edit_beauty_narrow_face_c.png",
+          "name": "窄脸",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.1
+        },
+        {
+          "id": 12,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163200483-capa_edit_beauty_shouquangu_c.png",
+          "name": "瘦颧骨",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.0
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_lianxing.png",
+      "group_name": "脸型›"
+    },
+    {
+      "items": [
+        {
+          "id": 2,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017162951335-capa_edit_beauty_eyes_c.png",
+          "name": "大眼",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.5
+        },
+        {
+          "id": 13,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163216244-capa_edit_beauty_liangyan_c.png",
+          "name": "亮眼",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.5
+        },
+        {
+          "id": 14,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163230317-capa_edit_beauty_heiyanquan_c.png",
+          "name": "黑眼圈",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.5
+        },
+        {
+          "id": 15,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163248950-capa_edit_beauty_yuanyan_c.png",
+          "name": "圆眼",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.0
+        },
+        {
+          "id": 16,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163305540-capa_edit_beauty_kaiyanjiao_c.png",
+          "name": "开眼角",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.0
+        },
+        {
+          "id": 17,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163320749-capa_edit_beauty_yanju_c.png",
+          "name": "眼距",
+          "max_strength": 1.0,
+          "min_strength": -1.0,
+          "default_strength": 0.0
+        },
+        {
+          "id": 18,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163336309-capa_edit_beauty_yanjingjiaodu_c.png",
+          "name": "眼睛角度",
+          "max_strength": 1.0,
+          "min_strength": -1.0,
+          "default_strength": 0.0
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_yanjing.png",
+      "group_name": "眼睛›"
+    },
+    {
+      "items": [
+        {
+          "id": 8,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163010528-capa_edit_beauty_shoubi_c.png",
+          "name": "瘦鼻",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.3
+        },
+        {
+          "id": 9,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163027294-capa_edit_beauty_falingwen_c.png",
+          "name": "法令纹",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.5
+        },
+        {
+          "id": 19,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163352491-capa_edit_beauty_changbi_c.png",
+          "name": "长鼻",
+          "max_strength": 1.0,
+          "min_strength": -1.0,
+          "default_strength": 0.0
+        },
+        {
+          "id": 20,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163408485-capa_edit_beauty_cemianlongbi_c.png",
+          "name": "侧面隆鼻",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.3
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_bizi.png",
+      "group_name": "鼻子›"
+    },
+    {
+      "items": [
+        {
+          "id": 22,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163438047-capa_edit_beauty_baiya_c.png",
+          "name": "白牙",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.5
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163438047-capa_edit_beauty_baiya_c.png",
+      "group_name": "白牙"
+    },
+    {
+      "items": [
+        {
+          "id": 23,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163500135-capa_edit_beauty_chunxing_c.png",
+          "name": "唇形",
+          "max_strength": 1.0,
+          "min_strength": -1.0,
+          "default_strength": 0.0
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163500135-capa_edit_beauty_chunxing_c.png",
+      "group_name": "唇形"
+    },
+    {
+      "items": [
+        {
+          "id": 28,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_qingxi.png",
+          "name": "清晰",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.3
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_qingxi.png",
+      "group_name": "清晰"
+    },
+    {
+      "items": [
+        {
+          "id": 26,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163516808-capa_edit_beauty_pingguoji_c.png",
+          "name": "苹果肌",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.0
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163516808-capa_edit_beauty_pingguoji_c.png",
+      "group_name": "苹果肌"
+    },
+    {
+      "items": [
+        {
+          "id": 27,
+          "type": 1,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163531310-capa_edit_beauty_etou_c.png",
+          "name": "额头",
+          "max_strength": 1.0,
+          "min_strength": -1.0,
+          "default_strength": 0.0
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163531310-capa_edit_beauty_etou_c.png",
+      "group_name": "额头"
+    },
+    {
+      "items": [
+        {
+          "id": 21,
+          "type": 2,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201017163422151-capa_edit_beauty_hongchun_c.png",
+          "name": "红唇",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.2,
+          "source_file": "https://zip-qc.xhscdn.com/beautys/markup/20201215204635513-kouhongjizhi.zip"
+        },
+        {
+          "id": 29,
+          "type": 2,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_saihong.png",
+          "name": "腮红",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.3,
+          "source_file": "https://zip-qc.xhscdn.com/beautys/markup/20201215210720568-saihonger.zip"
+        },
+        {
+          "id": 30,
+          "type": 2,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_liti.png",
+          "name": "立体",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.3,
+          "source_file": "https://zip-qc.xhscdn.com/beautys/markup/20201215210907107-xiuronger.zip"
+        },
+        {
+          "id": 31,
+          "type": 2,
+          "icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_yanzhuang.png",
+          "name": "眼妆",
+          "max_strength": 1.0,
+          "min_strength": 0.0,
+          "default_strength": 0.3,
+          "source_file": "https://zip-qc.xhscdn.com/beautys/markup/20201215210936088-yanzhuang.zip"
+        }
+      ],
+      "group_icon": "https://sns-img-qc.xhscdn.com/icons/beauty/20201214_buzhuang.png",
+      "group_name": "补妆›"
+    }
+  ],
+  "source_link": "https://fe-video-qc.xhscdn.com/f54f9e5b5951c2a4c76563d424a3e27c405314bc/beauty_res1109.zip"
+}

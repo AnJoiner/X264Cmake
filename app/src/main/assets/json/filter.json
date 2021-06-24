@@ -1,0 +1,51 @@
+[
+  {
+    "default_strength": 0.5,
+    "icon": "http://ci.xiaohongshu.com/icons/beauty/icon_buffing_white_Microdermabrasion.png",
+    "id": 1,
+    "name": "磨皮",
+    "support_shang_tang_max_strength": 0.5
+  },
+  {
+    "default_strength": 0.3,
+    "icon": "http://ci.xiaohongshu.com/icons/beauty/icon_buffing_white_big_eyes.png",
+    "id": 2,
+    "name": "大眼",
+    "support_shang_tang_max_strength": 0.8
+  },
+  {
+    "default_strength": 0.4,
+    "icon": "http://ci.xiaohongshu.com/icons/beauty/icon_buffing_white_Face_lifting.png",
+    "id": 3,
+    "name": "瘦脸",
+    "support_shang_tang_max_strength": 0.9
+  },
+  {
+    "default_strength": 0.2,
+    "icon": "http://ci.xiaohongshu.com/icons/beauty/icon_buffing_white_Whitening.png",
+    "id": 4,
+    "name": "美白",
+    "support_shang_tang_max_strength": 0.8
+  },
+  {
+    "default_strength": 0.3,
+    "icon": "http://ci.xiaohongshu.com/icons/beauty/icon_buffing_white_rosy.png",
+    "id": 7,
+    "name": "红润",
+    "support_shang_tang_max_strength": 1.0
+  },
+  {
+    "default_strength": 0.3,
+    "icon": "http://ci.xiaohongshu.com/icons/beauty/icon_buffing_white_Narrow_face.png",
+    "id": 5,
+    "name": "窄脸",
+    "support_shang_tang_max_strength": 0.9
+  },
+  {
+    "default_strength": 0.2,
+    "icon": "http://ci.xiaohongshu.com/icons/beauty/icon_buffing_white_small_face.png",
+    "id": 6,
+    "name": "小脸",
+    "support_shang_tang_max_strength": 1.0
+  }
+]

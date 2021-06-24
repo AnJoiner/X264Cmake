@@ -1,32 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:id="@+id/container_layout"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/dialog_camera_filter_bg"
-    style="@style/MDMatchWrap.Vertical">
+    android:id="@+id/container_layout"
+    style="@style/MDMatchWrap.Vertical"
+    android:background="@color/transparent">
 
-
-    <com.flyco.tablayout.CommonTabLayout
-        android:id="@+id/table_layout"
+    <SeekBar
+        android:id="@+id/filter_seek_bar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_38"
-        android:layout_marginStart="@dimen/dp_14"
-        android:layout_marginTop="@dimen/dp_5"
-        android:layout_marginEnd="@dimen/dp_14"
-        android:background="@color/color_black_50"
-        app:tl_divider_color="@color/color_white_50"
-        app:tl_divider_width="@dimen/dp_0.5"
-        app:tl_iconVisible="false"
-        app:tl_indicator_width="0dp"
-        app:tl_textBold="SELECT"
-        app:tl_textSelectColor="@color/white"
-        app:tl_textUnselectColor="@color/color_white_50"
-        app:tl_textsize="@dimen/sp_14" />
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:progressDrawable="@drawable/filter_seek_progress"
+        android:maxHeight="@dimen/dp_3"
+        style="@android:style/Widget.SeekBar"
+        android:thumb="@drawable/filter_seek_thumb" />
+
+    <LinearLayout
+        style="@style/MDMatchWrap.Vertical"
+        android:background="@drawable/dialog_camera_filter_bg">
+
+        <LinearLayout
+            style="@style/MDMatchWrap.Horizontal"
+            android:padding="@dimen/dp_15"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="@dimen/dp_19"
+                android:src="@drawable/ic_filter_clear"
+                android:layout_height="@dimen/dp_19"/>
+
+            <View
+                android:layout_width="@dimen/dp_1"
+                android:background="@color/color_black_30"
+                android:layout_marginStart="@dimen/dp_10"
+                android:layout_marginEnd="@dimen/dp_10"
+                android:layout_height="@dimen/dp_15"/>
+
+            <com.flyco.tablayout.CommonTabLayout
+                android:id="@+id/table_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:tl_iconVisible="false"
+                app:tl_tab_space_equal="false"
+                app:tl_indicator_width="@dimen/dp_20"
+                app:tl_indicator_corner_radius="@dimen/dp_2"
+                app:tl_textBold="SELECT"
+                app:tl_textSelectColor="@color/white"
+                app:tl_textUnselectColor="@color/color_white_50"
+                app:tl_textsize="@dimen/sp_14" />
+        </LinearLayout>
 
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_150"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/filter_recycler"
+            android:layout_height="@dimen/dp_100"
+            style="@style/MDMatchWrap"/>
+
+    </LinearLayout>
+
 
 </LinearLayout>
