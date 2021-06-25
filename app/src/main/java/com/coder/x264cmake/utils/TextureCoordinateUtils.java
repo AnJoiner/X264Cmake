@@ -20,7 +20,7 @@ public class TextureCoordinateUtils {
     };
 
 
-    // 纹理坐标，以左下角 (0,0) 作为坐标远点
+    // 纹理坐标，以左下角 (0,0) 作为坐标原点
     public static final float texCoords[] = {
             0.0f, 0.0f,     // 左下
             1.0f, 0.0f,     // 右下
@@ -28,12 +28,33 @@ public class TextureCoordinateUtils {
             1.0f, 1.0f      // 右上
     };
 
-    // 纹理坐标，以左下角 (0,0) 作为坐标远点，翻转X
-    public static final float texCoordsFlipX[] = {
-            1.0f, 0.0f,     // 右下
+
+    public static final float TEXTURE_NO_ROTATION[] = {
             0.0f, 0.0f,     // 左下
+            1.0f, 0.0f,     // 右下
+            0.0f, 1.0f,     // 左上
             1.0f, 1.0f,     // 右上
-            0.0f, 1.0f      // 左上
+    };
+
+    public static final float TEXTURE_ROTATED_90[] = {
+            0.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+    };
+
+    public static final float TEXTURE_ROTATED_180[] = {
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 0.0f,
+    };
+
+    public static final float TEXTURE_ROTATED_270[] = {
+            1.0f, 0.0f,
+            1.0f, 1.0f,
+            0.0f, 0.0f,
+            0.0f, 1.0f,
     };
 
     public static FloatBuffer createFloatBuffer(float[] coords){

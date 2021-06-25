@@ -62,10 +62,10 @@ public class RendererManager {
         releaseBuffer();
 
         mVertexBuffer = TextureCoordinateUtils.createFloatBuffer(TextureCoordinateUtils.vertices);
-        mTextureBuffer = TextureCoordinateUtils.createFloatBuffer(TextureCoordinateUtils.texCoords);
+        mTextureBuffer = TextureCoordinateUtils.createFloatBuffer(TextureCoordinateUtils.TEXTURE_NO_ROTATION);
 
         mDisplayVertexBuffer = TextureCoordinateUtils.createFloatBuffer(TextureCoordinateUtils.vertices);
-        mDisplayTextureBuffer = TextureCoordinateUtils.createFloatBuffer(TextureCoordinateUtils.texCoords);
+        mDisplayTextureBuffer = TextureCoordinateUtils.createFloatBuffer(TextureCoordinateUtils.TEXTURE_NO_ROTATION);
     }
 
     /**
@@ -136,6 +136,8 @@ public class RendererManager {
     public void setDisplaySize(int width, int height) {
         mDisplayWidth = width;
         mDisplayHeight = height;
+//        mDisplayWidth = height;
+//        mDisplayHeight = width;
         if (mImageWidth != 0 && mImageHeight != 0) {
             adjustImageScaling();
             onFilterChanged();
@@ -151,6 +153,8 @@ public class RendererManager {
     public void setImageSize(int width, int height) {
         mImageWidth = width;
         mImageHeight = height;
+//        mImageWidth = height;
+//        mImageHeight = width;
         if (mDisplayWidth != 0 && mDisplayHeight != 0) {
             adjustImageScaling();
             onFilterChanged();
@@ -257,7 +261,7 @@ public class RendererManager {
         float ratioHeight = imageHeightNew / ((float) mDisplayHeight);
 
         float[] vertexCords = TextureCoordinateUtils.vertices;
-        float[] textureCords = TextureCoordinateUtils.texCoords;
+        float[] textureCords = TextureCoordinateUtils.TEXTURE_NO_ROTATION;
         if (mImageScaleType == ImageScaleType.CENTER_CROP) {
             float distHorizontal = (1 - 1 / ratioWidth) / 2;
             float distVertical = (1 - 1 / ratioHeight) / 2;
