@@ -175,7 +175,7 @@ public class GLImageBaseFilter {
         }
 
         if (textureId == OpenGlUtils.NO_TEXTURE){
-            LogUtils.e("Failed to draw frame. Texture is error");
+            LogUtils.e("Failed to draw frame. Texture is error in " + getClass().getSimpleName());
             return OpenGlUtils.NO_TEXTURE;
         }
         if (!isFrameBuffer) {

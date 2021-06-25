@@ -9,6 +9,14 @@ import com.coder.x264cmake.module.filter.GLImageOESFilter;
 import com.coder.x264cmake.module.filter.beauty.GLImageBeautyFilter;
 import com.coder.x264cmake.module.filter.color.GLImageAntiqueFilter;
 import com.coder.x264cmake.module.filter.color.GLImageBlackCatFilter;
+import com.coder.x264cmake.module.filter.color.GLImageBrannanFilter;
+import com.coder.x264cmake.module.filter.color.GLImageBrooklynFilter;
+import com.coder.x264cmake.module.filter.color.GLImageCalmFilter;
+import com.coder.x264cmake.module.filter.color.GLImageCoolFilter;
+import com.coder.x264cmake.module.filter.color.GLImageCrayonFilter;
+import com.coder.x264cmake.module.filter.color.GLImageEarlyBirdFilter;
+import com.coder.x264cmake.module.filter.color.GLImageEmeraldFilter;
+import com.coder.x264cmake.module.filter.color.GLImageFairyTaleFilter;
 import com.coder.x264cmake.utils.TextureCoordinateUtils;
 
 import java.nio.FloatBuffer;
@@ -34,10 +42,6 @@ public class RendererManager {
     // 显示输出的宽高
     protected int mDisplayWidth;
     protected int mDisplayHeight;
-
-    // Controls the alignment between frame size and surface size, 0.5f default is centered.
-    private float alignmentHorizontal = 0.5f;
-    private float alignmentVertical = 0.5f;
 
     public RendererManager(Context context) {
         mContext = context;
@@ -72,6 +76,7 @@ public class RendererManager {
 
         mFilterArrays.put(RendererIndex.OES_INDEX, new GLImageOESFilter(mContext));
         mFilterArrays.put(RendererIndex.BEAUTY_INDEX, new GLImageBeautyFilter(mContext));
+        // crayon、evergreen、freud 无法使用，后期解决
         mFilterArrays.put(RendererIndex.COLOR_INDEX, new GLImageAntiqueFilter(mContext));
 //        mFilterArrays.put(RendererIndex.EFFECT_INDEX, new GLImageEffectSoulStuffFilter(mContext));
         mFilterArrays.put(RendererIndex.PREVIEW_INDEX, new GLImageBaseFilter(mContext));

@@ -7,6 +7,7 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
