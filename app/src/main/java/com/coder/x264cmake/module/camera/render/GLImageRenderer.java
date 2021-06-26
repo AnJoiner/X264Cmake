@@ -4,8 +4,6 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 
-import com.coder.x264cmake.module.camera.Camera1Loader;
-import com.coder.x264cmake.module.camera.ICameraLoader;
 import com.coder.x264cmake.utils.LogUtils;
 import com.coder.x264cmake.utils.OpenGlUtils;
 
@@ -54,7 +52,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         // 设置监听
         mSurfaceTexture.setOnFrameAvailableListener(this);
         // 开启预览
-        if (mOnImageRendererCallback!=null){
+        if (mOnImageRendererCallback != null) {
             mOnImageRendererCallback.onSurfaceCreated(mSurfaceTexture);
         }
 
@@ -168,6 +166,12 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 //        });
 //    }
 
+    public void takePicture(){
+        if (mRendererManager!=null){
+            mRendererManager.setTakePicture();
+        }
+    }
+
     /**
      * 设置图像大小
      *
@@ -180,7 +184,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     }
 
 
-    public interface OnImageRendererCallback{
+    public interface OnImageRendererCallback {
         void onSurfaceCreated(SurfaceTexture surfaceTexture);
     }
 

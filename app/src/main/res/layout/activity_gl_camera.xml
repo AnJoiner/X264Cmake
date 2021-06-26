@@ -72,4 +72,12 @@
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <TextView
+        android:id="@+id/camera_btn"
+        android:layout_width="@dimen/dp_50"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="@dimen/dp_30"
+        android:background="@drawable/shape_camera_shoot_btn"
+        android:layout_height="@dimen/dp_50"/>
+
 </FrameLayout>

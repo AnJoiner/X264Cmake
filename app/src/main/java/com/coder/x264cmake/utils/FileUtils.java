@@ -18,6 +18,19 @@ import java.io.InputStreamReader;
  * @datetime: 21-4-10
  */
 public class FileUtils {
+
+    public static void saveBitmap(Context context , Bitmap bitmap){
+        File file = new File(context.getExternalCacheDir(),System.currentTimeMillis()+".jpg");
+        try {
+            FileOutputStream  fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void copyFilesAssets(Context context, String oldPath, String newPath) {
         try {
             String fileNames[] = context.getAssets().list(oldPath);//获取assets目录下的所有文件及目录名

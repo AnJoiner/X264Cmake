@@ -7,11 +7,7 @@ import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.view.View;
 import android.widget.FrameLayout;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.coder.x264cmake.R;
 import com.coder.x264cmake.module.camera.Camera1Loader;
@@ -107,6 +103,13 @@ public class GLCameraPreview extends FrameLayout {
         final ConfigurationInfo configurationInfo =
                 activityManager.getDeviceConfigurationInfo();
         return configurationInfo.reqGlEsVersion >= 0x20000;
+    }
+
+    public void takePicture(){
+        LogUtils.e("Camera Rotation:"+mCameraLoader.getOrientation());
+        if (mGLImageRenderer!=null){
+            mGLImageRenderer.takePicture();
+        }
     }
 
     /**

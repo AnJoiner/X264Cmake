@@ -2,23 +2,18 @@ package com.coder.x264cmake.module.camera.render;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.opengl.GLES20;
 import android.util.SparseArray;
 
 import com.coder.x264cmake.module.filter.GLImageBaseFilter;
 import com.coder.x264cmake.module.filter.GLImageOESFilter;
 import com.coder.x264cmake.module.filter.beauty.GLImageBeautyFilter;
-import com.coder.x264cmake.module.filter.color.GLImageAntiqueFilter;
-import com.coder.x264cmake.module.filter.color.GLImageBlackCatFilter;
-import com.coder.x264cmake.module.filter.color.GLImageBrannanFilter;
-import com.coder.x264cmake.module.filter.color.GLImageBrooklynFilter;
-import com.coder.x264cmake.module.filter.color.GLImageCalmFilter;
-import com.coder.x264cmake.module.filter.color.GLImageCoolFilter;
-import com.coder.x264cmake.module.filter.color.GLImageCrayonFilter;
-import com.coder.x264cmake.module.filter.color.GLImageEarlyBirdFilter;
-import com.coder.x264cmake.module.filter.color.GLImageEmeraldFilter;
-import com.coder.x264cmake.module.filter.color.GLImageFairyTaleFilter;
+import com.coder.x264cmake.utils.FileUtils;
 import com.coder.x264cmake.utils.TextureCoordinateUtils;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 public class RendererManager {
@@ -42,6 +37,11 @@ public class RendererManager {
     // 显示输出的宽高
     protected int mDisplayWidth;
     protected int mDisplayHeight;
+    // 是否要执行拍照
+    private boolean isTakePicture;
+
+    private ByteBuffer mByteBuffer;
+    private Bitmap mBitmap;
 
     public RendererManager(Context context) {
         mContext = context;
@@ -77,7 +77,7 @@ public class RendererManager {
         mFilterArrays.put(RendererIndex.OES_INDEX, new GLImageOESFilter(mContext));
         mFilterArrays.put(RendererIndex.BEAUTY_INDEX, new GLImageBeautyFilter(mContext));
         // crayon、evergreen、freud 无法使用，后期解决
-        mFilterArrays.put(RendererIndex.COLOR_INDEX, new GLImageAntiqueFilter(mContext));
+        mFilterArrays.put(RendererIndex.COLOR_INDEX, null);
 //        mFilterArrays.put(RendererIndex.EFFECT_INDEX, new GLImageEffectSoulStuffFilter(mContext));
         mFilterArrays.put(RendererIndex.PREVIEW_INDEX, new GLImageBaseFilter(mContext));
     }
@@ -221,12 +221,47 @@ public class RendererManager {
 //        currentTexture = mFilterArrays.get(RendererIndex.EFFECT_INDEX)
 //                .onDrawFrame(currentTexture, mVertexBuffer, mTextureBuffer,true);
 
+
         // 预览输出渲染
         currentTexture = mFilterArrays.get(RendererIndex.PREVIEW_INDEX)
                 .onDrawFrame(currentTexture, mDisplayVertexBuffer, mDisplayTextureBuffer, false);
 
+        if (isTakePicture){
+            takePicture();
+            isTakePicture = false;
+        }
+
         return currentTexture;
     }
+
+
+    public void takePicture() {
+        if (mByteBuffer == null){
+            mByteBuffer = ByteBuffer.allocateDirect(mImageWidth * mImageHeight * 4)
+                    .order(ByteOrder.nativeOrder());
+        }
+        mByteBuffer.clear();
+        mByteBuffer.position(0);
+        GLES20.glReadPixels(0, 0, mImageWidth, mImageHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteBuffer);
+        // 创建bitmap
+        if (mBitmap!=null){
+            mBitmap.recycle();
+        }
+        mBitmap = Bitmap.createBitmap(mImageWidth, mImageHeight, Bitmap.Config.ARGB_8888);
+        mBitmap.copyPixelsFromBuffer(mByteBuffer);
+
+//        Matrix matrix = new Matrix();
+//        matrix.postRotate(180);
+//
+//        mBitmap = Bitmap.createBitmap(mBitmap, 0, 0, mBitmap.getWidth(), mBitmap.getHeight(), matrix, true);
+
+        FileUtils.saveBitmap(mContext,mBitmap);
+    }
+
+    public void setTakePicture() {
+        isTakePicture = true;
+    }
+
 
     /**
      * 调整滤镜变换

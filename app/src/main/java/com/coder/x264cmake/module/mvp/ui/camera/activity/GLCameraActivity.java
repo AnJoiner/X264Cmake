@@ -34,6 +34,7 @@ public class GLCameraActivity extends BaseActivity<ActivityGlCameraBinding> impl
         mViewBinding.cameraCloseBtn.setOnClickListener(this);
         mViewBinding.cameraSwitchBtn.setOnClickListener(this);
         mViewBinding.cameraFilterBtn.setOnClickListener(this);
+        mViewBinding.cameraBtn.setOnClickListener(this);
     }
 
     @Override
@@ -46,6 +47,8 @@ public class GLCameraActivity extends BaseActivity<ActivityGlCameraBinding> impl
         } else if (v.getId() == R.id.camera_filter_btn) {
             // 滤镜弹窗
             popupCameraFilterDialog();
+        }else if (v.getId() == R.id.camera_btn){
+            mViewBinding.cameraPreview.takePicture();
         }
     }
 
