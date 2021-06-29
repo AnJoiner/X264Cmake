@@ -59,7 +59,7 @@ public class TextureCoordinateUtils {
 
     public static FloatBuffer createFloatBuffer(float[] coords){
        FloatBuffer floatBuffer = ByteBuffer
-                .allocateDirect(coords.length * TextureCoordinateUtils.COORDINATE_COUNT)
+                .allocateDirect(coords.length * TextureCoordinateUtils.SIZE_OF_FLOAT)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
         floatBuffer.put(coords);
