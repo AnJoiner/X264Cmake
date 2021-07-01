@@ -1,13 +1,16 @@
 package com.coder.x264cmake.module.camera.egl;
 
+import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.opengl.EGLSurface;
 import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 public class InputSurface implements InputSurfaceInterface {
     // egl 管理工具
     private EGLManager mEGLManager;
-    private Surface mSurface;
+    private Object mSurface;
     // 是否释放Surface
     private boolean isReleaseSurface;
     // egl surface
@@ -19,13 +22,24 @@ public class InputSurface implements InputSurfaceInterface {
         this(eglManager,surface,true);
     }
 
-    public InputSurface(EGLManager eglManager, Surface surface, boolean isReleaseSurface) {
+    public InputSurface(EGLManager eglManager, Object surface, boolean isReleaseSurface) {
+
         if (surface == null) {
             throw new NullPointerException();
         }
+        if (surface instanceof Surface){
+            mSurface = surface;
+        }else if (surface instanceof SurfaceHolder){
+            mSurface = ((SurfaceHolder) surface).getSurface();
+        }else if (surface instanceof SurfaceView){
+            mSurface = ((SurfaceView) surface).getHolder().getSurface();
+        }else if (surface instanceof SurfaceTexture){
+            mSurface = surface;
+        }else {
+            throw new RuntimeException("invalid surface: " + surface);
+        }
 
         mEGLManager = eglManager;
-        mSurface = surface;
         this.isReleaseSurface = isReleaseSurface;
 
         if (mEGLManager == null){
@@ -34,7 +48,7 @@ public class InputSurface implements InputSurfaceInterface {
         if (mEGLSurface!= EGL14.EGL_NO_SURFACE){
             throw new IllegalStateException("surface already created");
         }
-        mEGLSurface = mEGLManager.createWindowSurface(surface);
+        mEGLSurface = mEGLManager.createWindowSurface(mSurface);
 
         mWidth = getWidth();
         mHeight = getHeight();
@@ -90,7 +104,7 @@ public class InputSurface implements InputSurfaceInterface {
     @Override
     public void updateSize(int width, int height) {
         if (mWidth!= width || mHeight != height){
-            mEGLManager.releaseSurface(mEGLSurface);
+            mEGLManager.releaseEGLSurface(mEGLSurface);
             mEGLSurface = mEGLManager.createWindowSurface(mSurface);
             mWidth = getWidth();
             mHeight = getHeight();
@@ -99,13 +113,26 @@ public class InputSurface implements InputSurfaceInterface {
 
     @Override
     public void release() {
-        mEGLManager.releaseSurface(mEGLSurface);
+        mEGLManager.releaseEGLSurface(mEGLSurface);
         mEGLManager.release();
-        // 释放surface
-        if (isReleaseSurface && mSurface!=null){
-            mSurface.release();
-        }
+        releaseSurface();
         mEGLSurface = EGL14.EGL_NO_SURFACE;
         mSurface = null;
+    }
+
+
+    public void releaseSurface(){
+        // 释放surface
+        if (isReleaseSurface && mSurface!=null){
+            if (mSurface instanceof Surface){
+                ((Surface) mSurface).release();
+            }else if (mSurface instanceof SurfaceHolder){
+                ((SurfaceHolder) mSurface).getSurface().release();
+            }else if (mSurface instanceof SurfaceView){
+                ((SurfaceView) mSurface).getHolder().getSurface().release();
+            }else if (mSurface instanceof SurfaceTexture){
+                ((SurfaceTexture) mSurface).release();
+            }
+        }
     }
 }

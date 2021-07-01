@@ -196,7 +196,7 @@ public class EGLManager {
      * Destroys the specified surface.  Note the EGLSurface won't actually be destroyed if it's
      * still current in a context.
      */
-    public void releaseSurface(EGLSurface eglSurface) {
+    public void releaseEGLSurface(EGLSurface eglSurface) {
         if (mEGLDisplay!= EGL14.EGL_NO_DISPLAY){
             EGL14.eglDestroySurface(mEGLDisplay, eglSurface);
         }
