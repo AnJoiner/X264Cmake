@@ -13,34 +13,56 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.coder.x264cmake.module.camera.anotations.EGLFlag;
-
+import com.coder.x264cmake.module.camera.anotations.GLVersion;
 
 
 /**
- * @auther: AnJoiner
+ * @author: AnJoiner
  * @datetime: 2021/6/26
  */
 public class EGLManager {
     private static final String TAG = "EGLManager";
 
     public static final int FLAG_RECORDABLE = 0x01;
+    public static final int FLAG_WINDOW = 0x02;
+    public static final int FLAG_PBUFFER = 0x03;
+    // OpenGL 版本
+    public static final int GL_VERSION_2 = 2;
+    public static final int GL_VERSION_3 = 3;
 
     // egl context
     private EGLContext mEGLContext = EGL14.EGL_NO_CONTEXT;
     // egl display
     private EGLDisplay mEGLDisplay = EGL14.EGL_NO_DISPLAY;
     // egl config
-    private EGLConfig mEGLConfig = null;
-    // openGL es版本，默认2.0
-    private int mGLVersion = 2;
+    private EGLConfig mEGLConfig;
+    // openGL es version，default 2.0
+    private int mGLVersion;
 
     // EGL针对Android使用的扩展配置
     private static final int EGL_RECORDABLE_ANDROID = 0x3142;
 
-    public EGLManager(@EGLFlag int flag) {
+
+    public EGLManager() {
+        this(null, FLAG_RECORDABLE, GL_VERSION_2);
+    }
+
+    public EGLManager(EGLContext sharedContext) {
+        this(sharedContext, FLAG_RECORDABLE, GL_VERSION_2);
+    }
+
+    public EGLManager(EGLContext sharedContext, @EGLFlag int flag) {
+        this(sharedContext, flag, GL_VERSION_2);
+    }
+
+    public EGLManager(EGLContext sharedContext, @EGLFlag int flag, @GLVersion int glVersion) {
         if (mEGLDisplay != EGL14.EGL_NO_DISPLAY) {
             throw new RuntimeException("EGL display has been created!");
         }
+        if (sharedContext == null) {
+            mEGLContext = EGL14.EGL_NO_CONTEXT;
+        }
+
         mEGLDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
         if (mEGLDisplay == EGL14.EGL_NO_DISPLAY) {
             throw new RuntimeException("Failed to get EGL display!");
@@ -50,6 +72,7 @@ public class EGLManager {
         if (!isInitialized) {
             throw new RuntimeException("Failed to initialize EGL display!");
         }
+        mGLVersion = glVersion;
 
         mEGLConfig = newConfig(mGLVersion, flag);
         // Configure context for OpenGL ES 2.0 / 3.0 .
@@ -58,7 +81,7 @@ public class EGLManager {
                     EGL14.EGL_CONTEXT_CLIENT_VERSION, mGLVersion,
                     EGL14.EGL_NONE
             };
-            mEGLContext = EGL14.eglCreateContext(mEGLDisplay, mEGLConfig, EGL14.EGL_NO_CONTEXT, attrib_list, 0);
+            mEGLContext = EGL14.eglCreateContext(mEGLDisplay, mEGLConfig, sharedContext, attrib_list, 0);
             checkEglError("eglCreateContext");
         }
         if (mEGLContext == null) {
@@ -69,7 +92,7 @@ public class EGLManager {
 
 
     /**
-     * 创建一个window surface 并与接收到的surface关联
+     * Create a window surface, and attach it to the Surface we received.
      */
     public EGLSurface createWindowSurface(Object surface) {
         if (!(surface instanceof Surface
@@ -78,7 +101,6 @@ public class EGLManager {
                 || surface instanceof SurfaceView)) {
             throw new RuntimeException("invalid surface: " + surface);
         }
-        // Create a window surface, and attach it to the Surface we received.
         int[] attrib_list = {EGL14.EGL_NONE};
         EGLSurface eglSurface =
                 EGL14.eglCreateWindowSurface(mEGLDisplay, mEGLConfig, surface, attrib_list, 0);
@@ -92,7 +114,19 @@ public class EGLManager {
 
 
     public EGLConfig newConfig(int glVersion, int flag) {
-        boolean isRecordable = flag == FLAG_RECORDABLE;
+        // 根据类型判断
+        int attrType = EGL14.EGL_NONE;
+        int attrValue = EGL14.EGL_NONE;
+        if (flag == FLAG_RECORDABLE) {
+            attrType = EGL_RECORDABLE_ANDROID;
+            attrValue = 1;
+        } else if (flag == FLAG_WINDOW) {
+            attrType = EGL14.EGL_SURFACE_TYPE;
+            attrValue = EGL14.EGL_WINDOW_BIT;
+        } else if (flag == FLAG_PBUFFER) {
+            attrType = EGL14.EGL_SURFACE_TYPE;
+            attrValue = EGL14.EGL_PBUFFER_BIT;
+        }
         // 选择egl配置
         int[] attrs = new int[]{
                 EGL14.EGL_RED_SIZE, 8,
@@ -100,7 +134,7 @@ public class EGLManager {
                 EGL14.EGL_BLUE_SIZE, 8,
                 EGL14.EGL_ALPHA_SIZE, 8,
                 EGL14.EGL_RENDERABLE_TYPE, glVersion == 3 ? EGLExt.EGL_OPENGL_ES3_BIT_KHR : EGL14.EGL_OPENGL_ES2_BIT,
-                isRecordable ? EGL_RECORDABLE_ANDROID : EGL14.EGL_SURFACE_TYPE, isRecordable ? 1 : (EGL14.EGL_PBUFFER_BIT | EGL14.EGL_WINDOW_BIT),
+                attrType, attrValue,
                 EGL14.EGL_NONE
         };
 
@@ -115,6 +149,14 @@ public class EGLManager {
         }
 
         return configs[0];
+    }
+
+    public int getGLVersion() {
+        return mGLVersion;
+    }
+
+    public EGLContext getEGLContext() {
+        return mEGLContext;
     }
 
     /**
@@ -155,7 +197,9 @@ public class EGLManager {
      * still current in a context.
      */
     public void releaseSurface(EGLSurface eglSurface) {
-        EGL14.eglDestroySurface(mEGLDisplay, eglSurface);
+        if (mEGLDisplay!= EGL14.EGL_NO_DISPLAY){
+            EGL14.eglDestroySurface(mEGLDisplay, eglSurface);
+        }
     }
 
 
