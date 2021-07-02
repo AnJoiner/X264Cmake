@@ -2,7 +2,9 @@ package com.coder.x264cmake.module.camera.render;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
+import android.opengl.EGL14;
 import android.opengl.GLSurfaceView;
+import android.os.Looper;
 
 import com.coder.x264cmake.utils.LogUtils;
 import com.coder.x264cmake.utils.OpenGlUtils;
@@ -26,6 +28,10 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     private OnImageRendererCallback mOnImageRendererCallback;
 
     private int mImageWidth, mImageHeight;
+    // 用于拍照
+    private GLImageReader mGLImageReader;
+    // 是否要执行拍照
+    private boolean isTakePicture;
 
     public void setOnImageRendererCallback(OnImageRendererCallback onImageRendererCallback) {
         mOnImageRendererCallback = onImageRendererCallback;
@@ -76,6 +82,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        LogUtils.e("Thread:"+Thread.currentThread());
         drawFrame();
     }
 
@@ -103,6 +110,22 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         // 绘制
         if (mRendererManager != null) {
             mRendererManager.drawFrame(textures[0], mMatrix);
+
+//            if (isTakePicture){
+//                if (Looper.myLooper() == null){
+//                    Looper.prepare();
+//                }
+//                Looper.loop();
+//                if (mGLImageReader == null){
+//                    mGLImageReader  = new GLImageReader(EGL14.eglGetCurrentContext());
+//                    mGLImageReader.init(mImageWidth,mImageHeight);
+//                }
+//                if (mGLImageReader!=null){
+//                    mGLImageReader.drawFrame(textures[0]);
+//                }
+//                Looper.myLooper().quit();
+//                isTakePicture = false;
+//            }
         }
     }
 
@@ -138,6 +161,9 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         if (mRendererManager != null) {
             mRendererManager.release();
         }
+        if (mGLImageReader != null){
+            mGLImageReader.release();
+        }
     }
 
 //    /**
@@ -170,6 +196,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         if (mRendererManager!=null){
             mRendererManager.setTakePicture();
         }
+//        isTakePicture = true;
     }
 
     /**
