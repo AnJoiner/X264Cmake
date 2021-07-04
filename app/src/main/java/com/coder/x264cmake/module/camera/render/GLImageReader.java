@@ -5,12 +5,10 @@ import android.graphics.PixelFormat;
 import android.media.Image;
 import android.media.ImageReader;
 import android.opengl.EGLContext;
-import android.os.Handler;
-import android.os.Looper;
 
 import com.coder.x264cmake.BaseApplication;
 import com.coder.x264cmake.module.camera.egl.EGLManager;
-import com.coder.x264cmake.module.camera.egl.InputSurface;
+import com.coder.x264cmake.module.camera.egl.GLInputSurface;
 import com.coder.x264cmake.module.filter.GLImageBaseFilter;
 import com.coder.x264cmake.utils.FileUtils;
 import com.coder.x264cmake.utils.TextureCoordinateUtils;
@@ -21,7 +19,7 @@ import java.nio.FloatBuffer;
 public class GLImageReader {
     public static final int READ_MAX_IMAGES = 1;
     // 渲染surface
-    private InputSurface mInputSurface;
+    private GLInputSurface mGLInputSurface;
     // egl管理
     private EGLManager mEGLManager;
     // 读取image数据渲染surface
@@ -53,7 +51,7 @@ public class GLImageReader {
                     generateBitmap();
                 }
             },null);
-            mInputSurface = new InputSurface(mEGLManager,mImageReader.getSurface(),true);
+            mGLInputSurface = new GLInputSurface(mEGLManager,mImageReader.getSurface(),true);
         }
 
         if (mImageFilter == null) {
@@ -73,14 +71,14 @@ public class GLImageReader {
     }
 
     private void makeCurrent() {
-        if (mInputSurface != null) {
-            mInputSurface.makeCurrent();
+        if (mGLInputSurface != null) {
+            mGLInputSurface.makeCurrent();
         }
     }
 
     private void swapBuffers() {
-        if (mInputSurface != null) {
-            mInputSurface.swapBuffers();
+        if (mGLInputSurface != null) {
+            mGLInputSurface.swapBuffers();
         }
     }
 
@@ -94,9 +92,9 @@ public class GLImageReader {
             mImageFilter.release();
             mImageFilter = null;
         }
-        if (mInputSurface != null) {
-            mInputSurface.release();
-            mInputSurface = null;
+        if (mGLInputSurface != null) {
+            mGLInputSurface.release();
+            mGLInputSurface = null;
         }
         if (mEGLManager != null) {
             mEGLManager.release();

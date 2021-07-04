@@ -8,7 +8,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 
-public class InputSurface implements InputSurfaceInterface {
+public class GLInputSurface implements InputSurfaceInterface {
     // egl 管理工具
     private EGLManager mEGLManager;
     private Object mSurface;
@@ -19,11 +19,11 @@ public class InputSurface implements InputSurfaceInterface {
     // egl 宽高
     private int mWidth, mHeight;
 
-    public InputSurface(EGLManager eglManager, Surface surface) {
+    public GLInputSurface(EGLManager eglManager, Object surface) {
         this(eglManager,surface,false);
     }
 
-    public InputSurface(EGLManager eglManager, Object surface, boolean isReleaseSurface) {
+    public GLInputSurface(EGLManager eglManager, Object surface, boolean isReleaseSurface) {
 
         if (surface == null) {
             throw new NullPointerException();
@@ -115,14 +115,13 @@ public class InputSurface implements InputSurfaceInterface {
     @Override
     public void release() {
         mEGLManager.releaseEGLSurface(mEGLSurface);
-//        mEGLManager.release();
         releaseSurface();
         mEGLSurface = EGL14.EGL_NO_SURFACE;
         mSurface = null;
     }
 
 
-    public void releaseSurface(){
+    private void releaseSurface(){
         // 释放surface
         if (isReleaseSurface && mSurface!=null){
             if (mSurface instanceof Surface){
