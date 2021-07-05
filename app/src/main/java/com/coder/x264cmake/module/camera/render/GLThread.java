@@ -1,12 +1,7 @@
 package com.coder.x264cmake.module.camera.render;
 
-import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-
-import com.coder.x264cmake.module.camera.egl.GLInputSurface;
 
 /**
  * @auther: AnJoiner
@@ -15,67 +10,59 @@ import com.coder.x264cmake.module.camera.egl.GLInputSurface;
 public class GLThread extends Thread {
     private static final String TAG = "GLThread";
     private static final String THREAD_NAME = "camera.egl.GLThread";
-
-    private boolean doneStarting;
-    private boolean startedSuccessfully;
-    // 同步锁
-    private final Object startLock = new Object();
-
-    // EGL Surface
-    protected GLInputSurface mGLInputSurface;
-    // 消息处理
-    protected Handler mHandler;
     protected Looper mLooper;
 
-    public GLThread(@NonNull GLInputSurface GLInputSurface) {
+    public GLThread() {
         setName(THREAD_NAME);
-        mGLInputSurface = GLInputSurface;
     }
 
     @Override
     public void run() {
-        try {
-            Looper.prepare();
+        Looper.prepare();
+        Log.d(TAG, String.format("Starting GL thread %s", getName()));
+        synchronized (this) {
             mLooper = Looper.myLooper();
-            mHandler = new Handler(mLooper);
+            notifyAll();
+        }
+        Looper.loop();
+        Log.d(TAG, String.format("Stopping GL thread %s", getName()));
+    }
 
-            Log.d(TAG, String.format("Starting GL thread %s", getName()));
-            mGLInputSurface.makeCurrent();
-            startedSuccessfully = true;
-        } finally {
-            // Always stop waitUntilReady here, even if we got an exception.
-            // Otherwise the main thread may be stuck waiting.
-            synchronized (startLock) {
-                doneStarting = true;
-                startLock.notify(); // signal waitUntilReady()
+    public Looper getLooper() {
+        if (!isAlive()) {
+            return null;
+        }
+
+        // If the thread has been started, wait until the looper has been created.
+        synchronized (this) {
+            while (isAlive() && mLooper == null) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                }
             }
         }
+        return mLooper;
+    }
 
-        try {
-            Looper.loop();
-        } finally {
-            mLooper = null;
-            mHandler.removeCallbacksAndMessages(null);
-            Log.d(TAG, String.format("Stopping GL thread %s", getName()));
+
+    public boolean quit() {
+        Looper looper = getLooper();
+        if (looper != null) {
+            looper.quit();
+            return true;
         }
+        return false;
     }
 
     /** Terminates the thread, after processing all pending messages. */
     public boolean quitSafely() {
-        if (mLooper == null) {
-            return false;
+        Looper looper = getLooper();
+        if (looper != null) {
+            looper.quitSafely();
+            return true;
         }
-        mLooper.quitSafely();
-        return true;
+        return false;
     }
 
-
-    public boolean waitUntilReady() throws InterruptedException {
-        synchronized (startLock) {
-            while (!doneStarting) {
-                startLock.wait();
-            }
-        }
-        return startedSuccessfully;
-    }
 }

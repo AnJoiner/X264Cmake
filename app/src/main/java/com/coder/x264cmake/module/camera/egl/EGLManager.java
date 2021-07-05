@@ -25,7 +25,6 @@ public class EGLManager {
 
     public static final int FLAG_RECORDABLE = 0x01;
     public static final int FLAG_WINDOW = 0x02;
-    public static final int FLAG_PBUFFER = 0x03;
     // OpenGL 版本
     public static final int GL_VERSION_2 = 2;
     public static final int GL_VERSION_3 = 3;
@@ -122,10 +121,7 @@ public class EGLManager {
             attrValue = 1;
         } else if (flag == FLAG_WINDOW) {
             attrType = EGL14.EGL_SURFACE_TYPE;
-            attrValue = EGL14.EGL_WINDOW_BIT;
-        } else if (flag == FLAG_PBUFFER) {
-            attrType = EGL14.EGL_SURFACE_TYPE;
-            attrValue = EGL14.EGL_PBUFFER_BIT;
+            attrValue = EGL14.EGL_WINDOW_BIT | EGL14.EGL_PBUFFER_BIT;
         }
         // 选择egl配置
         int[] attrs = new int[]{

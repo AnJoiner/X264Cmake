@@ -6,8 +6,7 @@ import com.coder.x264cmake.module.camera.egl.EGLManager;
 
 @IntDef({
         EGLManager.FLAG_RECORDABLE,
-        EGLManager.FLAG_WINDOW,
-        EGLManager.FLAG_PBUFFER
+        EGLManager.FLAG_WINDOW
 })
 public @interface EGLFlag {
 }
