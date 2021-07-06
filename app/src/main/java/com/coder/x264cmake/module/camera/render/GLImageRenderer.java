@@ -2,9 +2,7 @@ package com.coder.x264cmake.module.camera.render;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
-import android.opengl.EGL14;
 import android.opengl.GLSurfaceView;
-import android.os.Looper;
 
 import com.coder.x264cmake.utils.LogUtils;
 import com.coder.x264cmake.utils.OpenGlUtils;
@@ -82,7 +80,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        LogUtils.e("Thread:"+Thread.currentThread());
+        LogUtils.e("Thread:" + Thread.currentThread());
         drawFrame();
     }
 
@@ -161,7 +159,7 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         if (mRendererManager != null) {
             mRendererManager.release();
         }
-        if (mGLImageReader != null){
+        if (mGLImageReader != null) {
             mGLImageReader.release();
         }
     }
@@ -192,8 +190,8 @@ public class GLImageRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 //        });
 //    }
 
-    public void takePicture(){
-        if (mRendererManager!=null){
+    public void takePicture() {
+        if (mRendererManager != null) {
             mRendererManager.setTakePicture();
         }
 //        isTakePicture = true;

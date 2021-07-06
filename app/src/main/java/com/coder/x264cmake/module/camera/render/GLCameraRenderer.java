@@ -15,20 +15,20 @@ import com.coder.x264cmake.utils.OpenGlUtils;
  * @datetime: 2021/7/4
  */
 public class GLCameraRenderer {
-    // egl 渲染管理
+    // egl manager
     private EGLManager mEGLManager;
-    // 渲染环境
+    // egl environment
     private GLInputSurface mGLInputSurface;
-    // surface只有两种 Surface、SurfaceTexture
+    // surface is one of Surface and SurfaceTexture
     private Object mSurface;
-    // 渲染管理器
+    // renderer manager
     private RendererManager mRendererManager;
-
-    // 纹理对象
-//    private int[] textures;
+    // oes texture
     private int mOESTexture = OpenGlUtils.NO_TEXTURE;
     // image stream to openGL es texture.
     private SurfaceTexture mSurfaceTexture;
+    // transformed matrix
+    private final float[] mMatrix = new float[16];
 
     private void parseSurface(Object surface) {
         if (surface == null) {
@@ -69,9 +69,9 @@ public class GLCameraRenderer {
                 requestRenderer();
             }
         });
-        // 3. Open Camera and preview
+        // 3. Open Camera and preview, we should attach the SurfaceTexture to camera.
 
-        // 4. Set image's width and height
+        // 4. Set image's width and height that from camera preview size.
 
 //        if (mRendererManager != null) {
 //            mRendererManager.setImageSize(mImageWidth, mImageHeight);
@@ -83,7 +83,19 @@ public class GLCameraRenderer {
      * Request render video frame.
      */
     public void requestRenderer() {
+        if (mSurfaceTexture!=null){
+            // 1. update image
+            mSurfaceTexture.updateTexImage();
+            // 2. get texture coordinate transform matrix
+            mSurfaceTexture.getTransformMatrix(mMatrix);
 
+            // 3. draw the frame
+            if (mRendererManager != null) {
+                mRendererManager.drawFrame(mOESTexture, mMatrix);
+            }
+            // 4. commit and display
+            mGLInputSurface.swapBuffers();
+        }
     }
 
     /**
@@ -100,15 +112,15 @@ public class GLCameraRenderer {
 
 
     /**
-     * Release EGLSurface and EGL
+     * Release EGLSurface 、 EGL 、OES Texture、 RendererManager
      */
     public void release() {
-        if (mGLInputSurface != null) {
-            mGLInputSurface.release();
-        }
-        if (mEGLManager != null) {
-            mEGLManager.release();
-        }
+        // Release oes texture
+        releaseTexture();
+        // Release renderer manager
+        releaseRenderer();
+        // Release EGL
+        releaseEGL();
     }
 
 
@@ -137,6 +149,27 @@ public class GLCameraRenderer {
         if (mSurfaceTexture != null) {
             mSurfaceTexture.release();
             mSurfaceTexture = null;
+        }
+    }
+
+    /**
+     * Release Renderer Manager
+     */
+    private void releaseRenderer() {
+        if (mRendererManager != null) {
+            mRendererManager.release();
+        }
+    }
+
+    /**
+     * Release egl
+     */
+    private void releaseEGL(){
+        if (mGLInputSurface != null) {
+            mGLInputSurface.release();
+        }
+        if (mEGLManager != null) {
+            mEGLManager.release();
         }
     }
 

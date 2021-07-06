@@ -1,7 +1,6 @@
 package com.coder.x264cmake.widgets;
 
 import android.content.Context;
-import android.opengl.EGLContext;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
@@ -9,8 +8,6 @@ import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 
-import com.coder.x264cmake.module.camera.egl.EGLManager;
-import com.coder.x264cmake.module.camera.egl.GLInputSurface;
 import com.coder.x264cmake.module.camera.render.GLCameraHandler;
 import com.coder.x264cmake.module.camera.render.GLCameraRenderer;
 import com.coder.x264cmake.module.camera.render.GLThread;

@@ -32,26 +32,27 @@ public class GLImageReader {
     private FloatBuffer mTextureBuffer;
 
     public GLImageReader(EGLContext context) {
-        mEGLManager = new EGLManager(context,EGLManager.FLAG_RECORDABLE,EGLManager.GL_VERSION_2);
+        mEGLManager = new EGLManager(context, EGLManager.FLAG_RECORDABLE, EGLManager.GL_VERSION_2);
         mVertexBuffer = TextureCoordinateUtils.createFloatBuffer(TextureCoordinateUtils.vertices);
         mTextureBuffer = TextureCoordinateUtils.createFloatBuffer(TextureCoordinateUtils.TEXTURE_NO_ROTATION);
     }
 
     /**
      * 初始化ImageReader
-     * @param width 宽度
+     *
+     * @param width  宽度
      * @param height 高度
      */
-    public void init(int width, int height){
-        if (mImageReader == null){
-            mImageReader = ImageReader.newInstance(width,height, PixelFormat.RGBA_8888,READ_MAX_IMAGES);
+    public void init(int width, int height) {
+        if (mImageReader == null) {
+            mImageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, READ_MAX_IMAGES);
             mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
                     generateBitmap();
                 }
-            },null);
-            mGLInputSurface = new GLInputSurface(mEGLManager,mImageReader.getSurface(),true);
+            }, null);
+            mGLInputSurface = new GLInputSurface(mEGLManager, mImageReader.getSurface(), true);
         }
 
         if (mImageFilter == null) {
@@ -65,7 +66,7 @@ public class GLImageReader {
     public void drawFrame(int texture) {
         makeCurrent();
         if (mImageFilter != null) {
-            mImageFilter.onDrawFrame(texture, mVertexBuffer, mTextureBuffer,false);
+            mImageFilter.onDrawFrame(texture, mVertexBuffer, mTextureBuffer, false);
         }
         swapBuffers();
     }
@@ -102,7 +103,7 @@ public class GLImageReader {
         }
     }
 
-    private void generateBitmap(){
+    private void generateBitmap() {
         Image image = mImageReader.acquireNextImage();
         Image.Plane[] planes = image.getPlanes();
         int width = image.getWidth();//设置的宽
@@ -135,7 +136,7 @@ public class GLImageReader {
                 width, height,
                 Bitmap.Config.ARGB_8888);
 
-        FileUtils.saveBitmap(BaseApplication.getInstance(),bitmap);
+        FileUtils.saveBitmap(BaseApplication.getInstance(), bitmap);
         image.close();
     }
 }
