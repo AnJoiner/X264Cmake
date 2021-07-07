@@ -19,16 +19,14 @@ import com.coder.x264cmake.utils.DensityUtils;
 import com.coder.x264cmake.utils.LogUtils;
 
 import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
+import static com.coder.x264cmake.module.camera.ICameraLoader.CAMERA_1;
+import static com.coder.x264cmake.module.camera.ICameraLoader.CAMERA_2;
 
 /**
  * @auther: AnJoiner
  * @datetime: 2021/6/19
  */
 public class GLCameraPreview extends FrameLayout {
-
-    public static final int CAMERA_1 = 0x01;
-    public static final int CAMERA_2 = 0x02;
-    public static final int CAMERA_X = 0x03;
 
     // 上下文
     private Context mContext;

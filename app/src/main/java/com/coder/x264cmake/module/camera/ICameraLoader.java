@@ -4,6 +4,10 @@ import android.graphics.SurfaceTexture;
 
 public abstract class ICameraLoader {
 
+    public static final int CAMERA_1 = 0x01;
+    public static final int CAMERA_2 = 0x02;
+    public static final int CAMERA_X = 0x03;
+
     public static final int CAMERA_PREVIEW_16To9 = 0x01;
     public static final int CAMERA_PREVIEW_4To3 = 0x02;
     public static final int CAMERA_PREVIEW_1To1 = 0x03;

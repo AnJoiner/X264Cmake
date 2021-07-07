@@ -29,6 +29,12 @@ public class GLCameraRenderer {
     private SurfaceTexture mSurfaceTexture;
     // transformed matrix
     private final float[] mMatrix = new float[16];
+    // callback data
+    private RenderCallback mRenderCallback;
+
+    public void setRenderCallback(RenderCallback renderCallback) {
+        mRenderCallback = renderCallback;
+    }
 
     private void parseSurface(Object surface) {
         if (surface == null) {
@@ -61,16 +67,14 @@ public class GLCameraRenderer {
         mRendererManager = new RendererManager(context);
         // 2. Create oes texture
         createTexture();
-
-        mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-            @Override
-            public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-                // render video frame from camera preview.
-                requestRenderer();
-            }
+        mSurfaceTexture.setOnFrameAvailableListener(surfaceTexture -> {
+            // render video frame from camera preview.
+            requestRenderer();
         });
         // 3. Open Camera and preview, we should attach the SurfaceTexture to camera.
-
+        if (mRenderCallback!=null){
+            mRenderCallback.surfaceTextureCreated(mSurfaceTexture);
+        }
         // 4. Set image's width and height that from camera preview size.
 
 //        if (mRendererManager != null) {
@@ -83,7 +87,7 @@ public class GLCameraRenderer {
      * Request render video frame.
      */
     public void requestRenderer() {
-        if (mSurfaceTexture!=null){
+        if (mSurfaceTexture != null) {
             // 1. update image
             mSurfaceTexture.updateTexImage();
             // 2. get texture coordinate transform matrix
@@ -104,7 +108,7 @@ public class GLCameraRenderer {
      * @param width  宽度
      * @param height 高度
      */
-    public void displayChanged(int width, int height) {
+    public void setDisplayChangeSize(int width, int height) {
         if (mRendererManager != null) {
             mRendererManager.setDisplaySize(width, height);
         }
@@ -164,13 +168,34 @@ public class GLCameraRenderer {
     /**
      * Release egl
      */
-    private void releaseEGL(){
+    private void releaseEGL() {
         if (mGLInputSurface != null) {
             mGLInputSurface.release();
         }
         if (mEGLManager != null) {
             mEGLManager.release();
         }
+
+        if (mSurface != null) {
+            if (mSurface instanceof Surface) {
+                ((Surface) mSurface).release();
+            } else if (mSurface instanceof SurfaceTexture) {
+                ((SurfaceTexture) mSurface).release();
+            }
+        }
+    }
+
+    /**
+     * set the image size by user selected.
+     */
+    public void setImageChangeSize(int width , int height){
+        if (mRendererManager!=null){
+            mRendererManager.setImageSize(width, height);
+        }
+    }
+
+    public interface RenderCallback {
+        void surfaceTextureCreated(SurfaceTexture surfaceTexture);
     }
 
 }
