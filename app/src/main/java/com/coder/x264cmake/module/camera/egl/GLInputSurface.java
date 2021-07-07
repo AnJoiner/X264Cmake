@@ -114,7 +114,7 @@ public class GLInputSurface implements InputSurfaceInterface {
 
     @Override
     public void release() {
-        mEGLManager.releaseEGLSurface(mEGLSurface);
+//        mEGLManager.releaseEGLSurface(mEGLSurface);
         releaseSurface();
         mEGLSurface = EGL14.EGL_NO_SURFACE;
         mSurface = null;
@@ -122,17 +122,18 @@ public class GLInputSurface implements InputSurfaceInterface {
 
 
     private void releaseSurface(){
+        mEGLManager.releaseEGLSurface(mEGLSurface);
         // 释放surface
-        if (isReleaseSurface && mSurface!=null){
-            if (mSurface instanceof Surface){
-                ((Surface) mSurface).release();
-            }else if (mSurface instanceof SurfaceHolder){
-                ((SurfaceHolder) mSurface).getSurface().release();
-            }else if (mSurface instanceof SurfaceView){
-                ((SurfaceView) mSurface).getHolder().getSurface().release();
-            }else if (mSurface instanceof SurfaceTexture){
-                ((SurfaceTexture) mSurface).release();
-            }
-        }
+//        if (isReleaseSurface && mSurface!=null){
+//            if (mSurface instanceof Surface){
+//                ((Surface) mSurface).release();
+//            }else if (mSurface instanceof SurfaceHolder){
+//                ((SurfaceHolder) mSurface).getSurface().release();
+//            }else if (mSurface instanceof SurfaceView){
+//                ((SurfaceView) mSurface).getHolder().getSurface().release();
+//            }else if (mSurface instanceof SurfaceTexture){
+//                ((SurfaceTexture) mSurface).release();
+//            }
+//        }
     }
 }

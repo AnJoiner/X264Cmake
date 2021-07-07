@@ -19,7 +19,7 @@ public class GLCameraRenderer {
     private EGLManager mEGLManager;
     // egl environment
     private GLInputSurface mGLInputSurface;
-    // surface is one of Surface and SurfaceTexture
+    // the object is one of Surface or SurfaceTexture
     private Object mSurface;
     // renderer manager
     private RendererManager mRendererManager;
