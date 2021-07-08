@@ -12,6 +12,9 @@ public class GLThread extends Thread {
     private static final String THREAD_NAME = "camera.egl.GLThread";
     protected Looper mLooper;
 
+    private boolean mRequestPaused;
+    private boolean mPaused;
+
     public GLThread() {
         setName(THREAD_NAME);
     }
@@ -39,12 +42,30 @@ public class GLThread extends Thread {
                 try {
                     wait();
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
         return mLooper;
     }
 
+    /**
+     * Pause the rendering thread
+     */
+    public void onPause(){
+//        synchronized (this){
+//
+//        }
+    }
+
+    /**
+     * Resumes the rendering thread
+     */
+    public void onResume(){
+//        synchronized (this){
+//
+//        }
+    }
 
     public boolean quit() {
         Looper looper = getLooper();

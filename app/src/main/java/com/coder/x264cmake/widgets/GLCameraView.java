@@ -14,10 +14,12 @@ import androidx.annotation.NonNull;
 import com.coder.x264cmake.module.camera.Camera1Loader;
 import com.coder.x264cmake.module.camera.Camera2Loader;
 import com.coder.x264cmake.module.camera.ICameraLoader;
+import com.coder.x264cmake.module.camera.anotations.CameraPreviewType;
 import com.coder.x264cmake.module.camera.render.GLCameraHandler;
 import com.coder.x264cmake.module.camera.render.GLCameraRenderer;
 import com.coder.x264cmake.module.camera.render.GLThread;
 import com.coder.x264cmake.utils.LogUtils;
+import com.coder.x264cmake.utils.OpenGlUtils;
 
 import static com.coder.x264cmake.module.camera.ICameraLoader.CAMERA_1;
 import static com.coder.x264cmake.module.camera.ICameraLoader.CAMERA_2;
@@ -47,26 +49,31 @@ public class GLCameraView extends SurfaceView implements SurfaceHolder.Callback,
     private float mHeightRatio;
 
     public GLCameraView(Context context) {
-        this(context,null);
+        this(context, null);
     }
 
     public GLCameraView(Context context, AttributeSet attrs) {
-        this(context, attrs,0);
+        this(context, attrs, 0);
     }
 
     public GLCameraView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initGLThread();
-        initCamera();
-        initCameraRender();
+        // 检测是否支持 OpenGL ES 2.0
+        if (OpenGlUtils.supportsOpenGLES2(context)) {
+            initGLThread();
+            initCamera();
+            initCameraRender();
+        }else {
+            throw new RuntimeException("Not support OpenGL ES 2.0");
+        }
     }
 
-    private void initCameraRender(){
-        mGLCameraRenderer =  new GLCameraRenderer();
+    private void initCameraRender() {
+        mGLCameraRenderer = new GLCameraRenderer();
         mGLCameraRenderer.setRenderCallback(this);
     }
 
-    private void initGLThread(){
+    private void initGLThread() {
         mGLThread = new GLThread();
         mGLThread.start();
     }
@@ -129,9 +136,35 @@ public class GLCameraView extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (mWidthRatio != 0 && mHeightRatio != 0) {
+            // 需根据用户选择设置视图大小
+            int width = MeasureSpec.getSize(widthMeasureSpec);
+            int height = MeasureSpec.getSize(heightMeasureSpec);
+
+            float ratio = mWidthRatio / mHeightRatio;
+
+            if (width / ratio < height) {
+                mDisplayWidth = width;
+                mDisplayHeight = Math.round(width / ratio);
+            } else {
+                mDisplayHeight = height;
+                mDisplayWidth = Math.round(height * ratio);
+            }
+
+            int newWidthSpec = MeasureSpec.makeMeasureSpec(mDisplayWidth, MeasureSpec.EXACTLY);
+            int newHeightSpec = MeasureSpec.makeMeasureSpec(mDisplayHeight, MeasureSpec.EXACTLY);
+
+            super.onMeasure(newWidthSpec, newHeightSpec);
+        } else {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        }
+    }
+
+    @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         Handler handler = getCameraHandler();
-        handler.sendMessage(handler.obtainMessage(GLCameraHandler.MSG_CREATED,holder.getSurface()));
+        handler.sendMessage(handler.obtainMessage(GLCameraHandler.MSG_CREATED, holder.getSurface()));
     }
 
     @Override
@@ -143,25 +176,88 @@ public class GLCameraView extends SurfaceView implements SurfaceHolder.Callback,
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
         Handler handler = getCameraHandler();
-        handler.sendMessage(handler.obtainMessage(GLCameraHandler.MSG_DESTROYED ,holder.getSurface()));
+        handler.sendMessage(handler.obtainMessage(GLCameraHandler.MSG_DESTROYED, holder.getSurface()));
     }
 
     @Override
     public void surfaceTextureCreated(SurfaceTexture surfaceTexture) {
         // surfaceTexture has been created. You can use camera to preview.
-
+        if (mCameraLoader != null) {
+            mCameraLoader.mSurfaceTexture = surfaceTexture;
+            mCameraLoader.resume(mDisplayWidth, mDisplayHeight);
+        }
     }
 
-    public void onDestroy(){
-        mGLThread.quit();
-    }
 
     public Handler getCameraHandler() {
         if (mCameraHandler == null) {
-            mCameraHandler = new GLCameraHandler(mGLThread.getLooper(), getContext() ,mGLCameraRenderer);
+            mCameraHandler = new GLCameraHandler(mGLThread.getLooper(), getContext(), mGLCameraRenderer);
         }
         return mCameraHandler;
     }
 
+    /**
+     * 设置相机的预览格式
+     *
+     * @param previewType 预览格式
+     */
+    public void setPreviewType(@CameraPreviewType int previewType) {
+        mPreviewType = previewType;
+
+        if (mCameraLoader != null) {
+            mCameraLoader.setPreviewType(previewType);
+            mCameraLoader.release();
+            mCameraLoader.resume(mDisplayWidth, mDisplayHeight);
+        }
+    }
+
+    public void setCameraType(int cameraType) {
+        mCameraType = cameraType;
+        if (mCameraLoader != null) {
+            mCameraLoader.release();
+            mCameraLoader = null;
+        }
+
+        initCamera();
+    }
+
+
+    /**
+     * Switch camera
+     */
+    public void switchCamera() {
+        if (mCameraLoader != null) {
+            mCameraLoader.switchCamera();
+        }
+    }
+
+
+    /**
+     * Pause the rendering thread
+     */
+    public void onPause() {
+        if (mCameraLoader != null) {
+            mCameraLoader.pause();
+        }
+        mGLThread.onPause();
+    }
+
+    /**
+     * Resumes the rendering thread
+     */
+    public void onResume() {
+        if (mCameraLoader != null) {
+            mCameraLoader.resume(mDisplayWidth, mDisplayHeight);
+        }
+        mGLThread.onResume();
+    }
+
+    public void onRelease() {
+        if (mCameraLoader != null) {
+            mCameraLoader.release();
+            mCameraLoader = null;
+        }
+        mGLThread.quit();
+    }
 
 }

@@ -15,21 +15,21 @@ import com.coder.x264cmake.utils.OpenGlUtils;
  * @datetime: 2021/7/4
  */
 public class GLCameraRenderer {
-    // egl manager
+    // EGL manager
     private EGLManager mEGLManager;
-    // egl environment
+    // EGL environment
     private GLInputSurface mGLInputSurface;
-    // the object is one of Surface or SurfaceTexture
+    // The object is one of Surface or SurfaceTexture
     private Object mSurface;
-    // renderer manager
+    // Renderer manager
     private RendererManager mRendererManager;
-    // oes texture
+    // OES texture
     private int mOESTexture = OpenGlUtils.NO_TEXTURE;
-    // image stream to openGL es texture.
+    // Image stream to openGL es texture.
     private SurfaceTexture mSurfaceTexture;
-    // transformed matrix
+    // Transformed matrix
     private final float[] mMatrix = new float[16];
-    // callback data
+    // Callback data
     private RenderCallback mRenderCallback;
 
     public void setRenderCallback(RenderCallback renderCallback) {
@@ -72,14 +72,10 @@ public class GLCameraRenderer {
             requestRenderer();
         });
         // 3. Open Camera and preview, we should attach the SurfaceTexture to camera.
+        // Set image's width and height that from camera preview size.
         if (mRenderCallback!=null){
             mRenderCallback.surfaceTextureCreated(mSurfaceTexture);
         }
-        // 4. Set image's width and height that from camera preview size.
-
-//        if (mRendererManager != null) {
-//            mRendererManager.setImageSize(mImageWidth, mImageHeight);
-//        }
     }
 
 
@@ -105,8 +101,6 @@ public class GLCameraRenderer {
     /**
      * Display area change
      *
-     * @param width  宽度
-     * @param height 高度
      */
     public void setDisplayChangeSize(int width, int height) {
         if (mRendererManager != null) {
