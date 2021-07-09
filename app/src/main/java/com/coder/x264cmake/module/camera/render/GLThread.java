@@ -12,12 +12,13 @@ public class GLThread extends Thread {
     private static final String THREAD_NAME = "camera.egl.GLThread";
     protected Looper mLooper;
 
-    private boolean mRequestPaused;
-    private boolean mPaused;
-
     public GLThread() {
         setName(THREAD_NAME);
     }
+
+    private boolean isPaused;
+
+    private boolean isRendered;
 
     @Override
     public void run() {
@@ -26,6 +27,7 @@ public class GLThread extends Thread {
         synchronized (this) {
             mLooper = Looper.myLooper();
             notifyAll();
+            isRendered = true;
         }
         Looper.loop();
         Log.d(TAG, String.format("Stopping GL thread %s", getName()));
@@ -52,19 +54,31 @@ public class GLThread extends Thread {
     /**
      * Pause the rendering thread
      */
-    public void onPause(){
-//        synchronized (this){
-//
-//        }
+    public void onPause() {
+        synchronized (this) {
+            while (!isPaused && isRendered){
+                try {
+                    wait();
+                    isPaused = true;
+                    isRendered = false;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
      * Resumes the rendering thread
      */
-    public void onResume(){
-//        synchronized (this){
-//
-//        }
+    public void onResume() {
+        synchronized (this){
+            while (isPaused && !isRendered){
+                notifyAll();
+                isPaused = false;
+                isRendered = true;
+            }
+        }
     }
 
     public boolean quit() {
@@ -76,7 +90,9 @@ public class GLThread extends Thread {
         return false;
     }
 
-    /** Terminates the thread, after processing all pending messages. */
+    /**
+     * Terminates the thread, after processing all pending messages.
+     */
     public boolean quitSafely() {
         Looper looper = getLooper();
         if (looper != null) {
