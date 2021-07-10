@@ -8,7 +8,6 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 
 import com.coder.x264cmake.module.camera.Camera1Loader;
